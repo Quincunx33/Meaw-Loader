@@ -895,6 +895,108 @@
       color: var(--error);
       background: rgba(196, 61, 61, 0.08);
     }
+    .history-select-mode-btn {
+      background: transparent;
+      border: 1.5px solid var(--card-border);
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .history-select-mode-btn:hover {
+      border-color: var(--fg);
+      color: var(--accent);
+    }
+    .history-select-mode-btn.active {
+      background: var(--fg);
+      color: var(--bg);
+      border-color: var(--fg);
+    }
+
+    /* Multi-select Action Toolbar */
+    .history-batch-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      margin-bottom: 10px;
+      border: 1.5px solid var(--accent);
+      border-radius: 8px;
+      background: rgba(232, 93, 42, 0.04);
+      animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+    }
+    .history-batch-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--fg);
+    }
+    .history-batch-count {
+      font-weight: 500;
+      color: var(--accent);
+    }
+    .history-batch-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .history-batch-btn {
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .history-batch-btn.select-all {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      color: var(--fg);
+    }
+    .history-batch-btn.select-all:hover {
+      border-color: var(--fg);
+    }
+    .history-batch-btn.delete-selected {
+      background: var(--error);
+      border: 1px solid var(--error);
+      color: #fff;
+      font-weight: 500;
+    }
+    .history-batch-btn.delete-selected:hover {
+      opacity: 0.9;
+    }
+    .history-batch-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* History Checkboxes */
+    .hist-checkbox-wrap {
+      display: none;
+      align-items: center;
+      padding-right: 4px;
+      flex-shrink: 0;
+    }
+    .history-section.multi-select-active .hist-checkbox-wrap {
+      display: flex;
+    }
+    .hist-checkbox {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+    .history-card.selected {
+      border-color: var(--accent);
+      background: rgba(232, 93, 42, 0.03);
+    }
     .history-empty {
       padding: 24px 16px;
       border: 1.5px dashed var(--card-border);
@@ -1445,6 +1547,7 @@
       <div class="history-header">
         <h2 class="history-title">History <span id="history-count" class="history-count"></span></h2>
         <div class="history-header-actions">
+          <button id="history-select-mode-btn" class="history-select-mode-btn" onclick="toggleHistorySelectMode()" style="display: none;">Select</button>
           <div class="history-sort-wrap" id="history-sort-wrap" style="display: none;">
             <label for="history-sort" class="history-sort-label">Sort:</label>
             <select id="history-sort" class="history-sort-select" onchange="changeHistorySort(this.value)" aria-label="Sort download history">
@@ -1457,6 +1560,15 @@
             </select>
           </div>
           <button id="clear-history-btn" class="clear-history-btn" onclick="clearHistory()" style="display: none;">Clear</button>
+        </div>
+      </div>
+      <div id="history-batch-toolbar" class="history-batch-toolbar" style="display: none;">
+        <div class="history-batch-left">
+          <span class="history-batch-count" id="historyBatchCount">0 selected</span>
+        </div>
+        <div class="history-batch-actions">
+          <button type="button" class="history-batch-btn select-all" onclick="toggleSelectAllHistory()">Select All</button>
+          <button type="button" class="history-batch-btn delete-selected" id="historyDeleteSelectedBtn" onclick="deleteSelectedHistory()" disabled>Delete Selected</button>
         </div>
       </div>
       <div id="history-list" class="history-list"></div>
@@ -2303,6 +2415,28 @@
 
     /* History Management */
     const HISTORY_KEY = 'reclip_history';
+    let currentHistorySort = localStorage.getItem('reclip_history_sort') || 'date-desc';
+
+    function parseSizeToBytes(sizeStr) {
+      if (!sizeStr || typeof sizeStr !== 'string') return 0;
+      const clean = sizeStr.replace('~', '').trim().toUpperCase();
+      const match = clean.match(/^([\d.]+)\s*(KB|MB|GB)?$/);
+      if (!match) return 0;
+      const num = parseFloat(match[1]);
+      const unit = match[2];
+      if (unit === 'KB') return num * 1024;
+      if (unit === 'MB') return num * 1024 * 1024;
+      if (unit === 'GB') return num * 1024 * 1024 * 1024;
+      return num;
+    }
+
+    function changeHistorySort(val) {
+      currentHistorySort = val;
+      try {
+        localStorage.setItem('reclip_history_sort', val);
+      } catch (_) {}
+      renderHistory();
+    }
 
     function getHistory() {
       try {
@@ -2354,11 +2488,79 @@
       renderHistory();
     }
 
-    function clearHistory() {
-      if (confirm('Clear all download history?')) {
-        saveHistory([]);
-        renderHistory();
+    let isHistorySelectMode = false;
+    let selectedHistoryIds = new Set();
+
+    function toggleHistorySelectMode() {
+      isHistorySelectMode = !isHistorySelectMode;
+      selectedHistoryIds.clear();
+      const section = document.getElementById('history-section');
+      const btn = document.getElementById('history-select-mode-btn');
+      const toolbar = document.getElementById('history-batch-toolbar');
+      if (!section || !btn || !toolbar) return;
+
+      if (isHistorySelectMode) {
+        section.classList.add('multi-select-active');
+        btn.classList.add('active');
+        btn.textContent = 'Cancel';
+        toolbar.style.display = 'flex';
+      } else {
+        section.classList.remove('multi-select-active');
+        btn.classList.remove('active');
+        btn.textContent = 'Select';
+        toolbar.style.display = 'none';
       }
+      renderHistory();
+    }
+
+    function updateHistoryBatchToolbar() {
+      const countEl = document.getElementById('historyBatchCount');
+      const delBtn = document.getElementById('historyDeleteSelectedBtn');
+      if (!countEl || !delBtn) return;
+      const count = selectedHistoryIds.size;
+      countEl.textContent = `${count} selected`;
+      delBtn.disabled = count === 0;
+    }
+
+    function toggleHistoryCardSelection(id, e) {
+      if (e) e.stopPropagation();
+      if (selectedHistoryIds.has(id)) {
+        selectedHistoryIds.delete(id);
+      } else {
+        selectedHistoryIds.add(id);
+      }
+      const cardEl = document.getElementById(`hist-card-${id}`);
+      const chk = document.getElementById(`hist-chk-${id}`);
+      if (cardEl) {
+        if (selectedHistoryIds.has(id)) cardEl.classList.add('selected');
+        else cardEl.classList.remove('selected');
+      }
+      if (chk) chk.checked = selectedHistoryIds.has(id);
+      updateHistoryBatchToolbar();
+    }
+
+    function toggleSelectAllHistory() {
+      const history = getHistory();
+      if (selectedHistoryIds.size === history.length) {
+        selectedHistoryIds.clear();
+      } else {
+        history.forEach(h => selectedHistoryIds.add(h.id));
+      }
+      renderHistory();
+      updateHistoryBatchToolbar();
+    }
+
+    function deleteSelectedHistory() {
+      if (selectedHistoryIds.size === 0) return;
+      if (!confirm(`Delete ${selectedHistoryIds.size} selected download record(s)?`)) return;
+
+      let history = getHistory();
+      history = history.filter(h => !selectedHistoryIds.has(h.id));
+      saveHistory(history);
+      selectedHistoryIds.clear();
+      updateHistoryBatchToolbar();
+      renderHistory();
+      showToast('Deleted selected history records');
     }
 
     function removeFromHistory(id, e) {
@@ -2366,167 +2568,39 @@
       let history = getHistory();
       history = history.filter(h => h.id !== id);
       saveHistory(history);
+      selectedHistoryIds.delete(id);
       renderHistory();
+      updateHistoryBatchToolbar();
     }
 
-    function timeAgo(ts) {
-      if (!ts) return '';
-      const sec = Math.floor((Date.now() - ts) / 1000);
-      if (sec < 60) return 'just now';
-      const min = Math.floor(sec / 60);
-      if (min < 60) return `${min}m ago`;
-      const hrs = Math.floor(min / 60);
-      if (hrs < 24) return `${hrs}h ago`;
-      const days = Math.floor(hrs / 24);
-      return `${days}d ago`;
-    }
-
-    async function reDownloadHistoryItem(id, btn) {
-      const history = getHistory();
-      const item = history.find(h => h.id === id);
-      if (!item) return;
-
-      if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spin"></span> Downloading...';
+    function clearHistory() {
+      if (confirm('Clear all download history?')) {
+        saveHistory([]);
+        selectedHistoryIds.clear();
+        if (isHistorySelectMode) toggleHistorySelectMode();
+        renderHistory();
       }
-
-      // Check if file is still cached on server
-      if (item.jobId) {
-        try {
-          const res = await fetch(`/api/status/${item.jobId}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.status === 'done') {
-              triggerFileSave(item.jobId, item.filename || data.filename);
-              if (btn) {
-                btn.innerHTML = 'Saved!';
-                btn.classList.add('done');
-                setTimeout(() => {
-                  btn.disabled = false;
-                  btn.innerHTML = 'Download';
-                  btn.classList.remove('done');
-                }, 1800);
-              }
-              return;
-            }
-          }
-        } catch (_) {}
-      }
-
-      // Request new download directly without re-fetching info
-      try {
-        const res = await fetch('/api/download', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: item.url,
-            format: item.format || 'video',
-            format_id: item.formatId || null,
-            title: item.title || '',
-          }),
-        });
-        const data = await res.json();
-        if (data.error) {
-          if (btn) {
-            btn.innerHTML = 'Error';
-            setTimeout(() => {
-              btn.disabled = false;
-              btn.innerHTML = 'Download';
-            }, 2000);
-          }
-          return;
-        }
-
-        const newJobId = data.job_id;
-        item.jobId = newJobId;
-
-        const iv = setInterval(async () => {
-          try {
-            const statusRes = await fetch(`/api/status/${newJobId}`);
-            const statusData = await statusRes.json();
-            if (statusData.status === 'done') {
-              clearInterval(iv);
-              item.filename = statusData.filename || item.filename;
-              item.timestamp = Date.now();
-              saveHistory(history);
-              triggerFileSave(newJobId, item.filename);
-              renderHistory();
-            } else if (statusData.status === 'error') {
-              clearInterval(iv);
-              if (btn) {
-                btn.innerHTML = 'Failed';
-                setTimeout(() => {
-                  btn.disabled = false;
-                  btn.innerHTML = 'Download';
-                }, 2000);
-              }
-            } else if (statusData.status === 'downloading' || statusData.status === 'processing') {
-              if (btn && typeof statusData.percent === 'number') {
-                btn.innerHTML = `<span class="spin"></span> ${Math.round(statusData.percent)}%`;
-              }
-            }
-          } catch {
-            clearInterval(iv);
-            if (btn) {
-              btn.innerHTML = 'Error';
-              setTimeout(() => {
-                btn.disabled = false;
-                btn.innerHTML = 'Download';
-              }, 2000);
-            }
-          }
-        }, 1000);
-      } catch (err) {
-        if (btn) {
-          btn.innerHTML = 'Failed';
-          setTimeout(() => {
-            btn.disabled = false;
-            btn.innerHTML = 'Download';
-          }, 2000);
-        }
-      }
-    }
-
-    function parseSizeToBytes(sizeStr) {
-      if (!sizeStr || typeof sizeStr !== 'string') return 0;
-      const clean = sizeStr.replace('~', '').trim().toUpperCase();
-      const match = clean.match(/^([\d.]+)\s*(KB|MB|GB)?$/);
-      if (!match) return 0;
-      const num = parseFloat(match[1]);
-      const unit = match[2];
-      if (unit === 'KB') return num * 1024;
-      if (unit === 'MB') return num * 1024 * 1024;
-      if (unit === 'GB') return num * 1024 * 1024 * 1024;
-      return num;
-    }
-
-    let currentHistorySort = localStorage.getItem('reclip_history_sort') || 'date-desc';
-
-    function changeHistorySort(val) {
-      currentHistorySort = val;
-      try {
-        localStorage.setItem('reclip_history_sort', val);
-      } catch (_) {}
-      renderHistory();
     }
 
     function renderHistory() {
       const container = document.getElementById('history-list');
       const countEl = document.getElementById('history-count');
       const clearBtn = document.getElementById('clear-history-btn');
+      const selectModeBtn = document.getElementById('history-select-mode-btn');
       const sortWrap = document.getElementById('history-sort-wrap');
       const sortSelect = document.getElementById('history-sort');
       if (!container) return;
 
       const history = getHistory();
       if (countEl) countEl.textContent = history.length ? `(${history.length})` : '';
-      if (clearBtn) clearBtn.style.display = history.length ? 'inline-block' : 'none';
+      if (clearBtn) clearBtn.style.display = (history.length && !isHistorySelectMode) ? 'inline-block' : 'none';
+      if (selectModeBtn) selectModeBtn.style.display = history.length ? 'inline-block' : 'none';
       if (sortWrap) sortWrap.style.display = history.length > 1 ? 'flex' : 'none';
       if (sortSelect) sortSelect.value = currentHistorySort;
 
       if (!history.length) {
         container.innerHTML = `<div class="history-empty">No download history yet. Completed downloads will appear here.</div>`;
+        if (isHistorySelectMode) toggleHistorySelectMode();
         return;
       }
 
@@ -2575,8 +2649,13 @@
         if (item.filesize) metaParts.push(`~${item.filesize}`);
         if (timeText) metaParts.push(timeText);
 
+        const isSelected = selectedHistoryIds.has(item.id);
+
         return `
-          <div class="history-card" id="hist-card-${item.id}">
+          <div class="history-card ${isSelected ? 'selected' : ''}" id="hist-card-${item.id}" ${isHistorySelectMode ? `onclick="toggleHistoryCardSelection('${item.id}')"` : ''}>
+            <div class="hist-checkbox-wrap">
+              <input type="checkbox" class="hist-checkbox" id="hist-chk-${item.id}" ${isSelected ? 'checked' : ''} onclick="toggleHistoryCardSelection('${item.id}', event)">
+            </div>
             <div class="hist-thumb">${thumbHtml}</div>
             <div class="hist-body">
               <div class="hist-title" title="${esc(item.title || item.filename || item.url)}">${esc(item.title || item.filename || 'Untitled')}</div>
@@ -2586,12 +2665,14 @@
               </div>
             </div>
             <div class="hist-actions">
-              <button class="hist-dl-btn" onclick="reDownloadHistoryItem('${item.id}', this)">Download</button>
+              <button class="hist-dl-btn" onclick="reDownloadHistoryItem('${item.id}', event || window.event)">Download</button>
               <button class="hist-del-btn" onclick="removeFromHistory('${item.id}', event)" title="Remove from history">&times;</button>
             </div>
           </div>
         `;
       }).join('');
+
+      updateHistoryBatchToolbar();
     }
 
     // Initialize history display on load

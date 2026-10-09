@@ -1,5 +1,5 @@
 {
-  "name": "ReClip",
+  "name": "Meaw Loader",
   "description": "Free Media Downloader - Fast and simple online video and audio downloader supporting 1000+ sites.",
   "capabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
