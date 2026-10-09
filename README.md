@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![yt--dlp](https://img.shields.io/badge/engine-yt--dlp-red)
 
-**Linked**: [https://github.com/Quincunx33/Meaw-Loader.git](https://github.com/Quincunx33/Meaw-Loader.git)
+**Linked**: [https://grabar.pages.dev](https://grabar.pages.dev)
 
 ---
 
