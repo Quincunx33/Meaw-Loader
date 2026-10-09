@@ -1,0 +1,64 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1200" height="630" fill="#f4f1eb"/>
+  
+  <!-- Subtle border frame -->
+  <rect x="32" y="32" width="1136" height="566" rx="24" fill="#ffffff" stroke="#e2ded6" stroke-width="3"/>
+  
+  <!-- Decorative corner elements -->
+  <circle cx="96" cy="96" r="8" fill="#e85d2a" opacity="0.3"/>
+  <circle cx="1104" cy="96" r="8" fill="#e85d2a" opacity="0.3"/>
+
+  <!-- Center Cat Avatar -->
+  <g transform="translate(540, 120)">
+    <circle cx="60" cy="60" r="56" fill="#e85d2a"/>
+    <!-- Cat face in white -->
+    <path d="M26 38 L38 64 C45 61 53 60 62 60 C71 60 79 61 86 64 L98 38 L90 72 C98 79 102 87 102 96 C102 112 84 118 62 118 C40 118 22 112 22 96 C22 87 26 79 34 72 Z" fill="#ffffff"/>
+    <!-- Inner ear tint -->
+    <path d="M32 46 L40 62 C36 58 32 54 32 46 Z" fill="#ffb499"/>
+    <path d="M92 46 L84 62 C88 58 92 54 92 46 Z" fill="#ffb499"/>
+    <!-- Eyes -->
+    <ellipse cx="46" cy="84" rx="5" ry="6" fill="#e85d2a"/>
+    <ellipse cx="78" cy="84" rx="5" ry="6" fill="#e85d2a"/>
+    <!-- Nose & mouth -->
+    <polygon points="62,94 58,89 66,89" fill="#e85d2a"/>
+    <path d="M57 97 Q62 102 67 97" stroke="#e85d2a" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <!-- Whiskers -->
+    <path d="M20 84 L36 86 M18 92 L36 91 M88 86 L104 84 M88 91 L106 92" stroke="#e85d2a" stroke-width="3" stroke-linecap="round"/>
+  </g>
+
+  <!-- Typography -->
+  <!-- Brand Title -->
+  <text x="600" y="320" text-anchor="middle" font-family="'Instrument Serif', serif, Georgia" font-size="76" font-weight="400" fill="#3a3a38" letter-spacing="-1">
+    Meaw <tspan fill="#e85d2a" font-style="italic">Loader</tspan>
+  </text>
+
+  <!-- Subtitle -->
+  <text x="600" y="375" text-anchor="middle" font-family="'DM Mono', monospace, Courier" font-size="22" font-weight="500" fill="#9c9889" letter-spacing="2">
+    FREE ONLINE MEDIA DOWNLOADER
+  </text>
+
+  <!-- Description -->
+  <text x="600" y="425" text-anchor="middle" font-family="'DM Mono', monospace, Courier" font-size="20" fill="#66645d">
+    Fast, privacy-friendly video &amp; audio downloads from YouTube, TikTok, Instagram, Twitter/X &amp; 1000+ sites.
+  </text>
+
+  <!-- Feature Tags -->
+  <g transform="translate(600, 485)">
+    <!-- Pill 1: MP4 1080p -->
+    <rect x="-310" y="0" width="130" height="38" rx="8" fill="#f4f1eb" stroke="#e2ded6" stroke-width="1.5"/>
+    <text x="-245" y="24" text-anchor="middle" font-family="'DM Mono', monospace" font-size="14" font-weight="500" fill="#e85d2a">🎬 MP4 1080p</text>
+
+    <!-- Pill 2: MP3 320k -->
+    <rect x="-160" y="0" width="130" height="38" rx="8" fill="#f4f1eb" stroke="#e2ded6" stroke-width="1.5"/>
+    <text x="-95" y="24" text-anchor="middle" font-family="'DM Mono', monospace" font-size="14" font-weight="500" fill="#2d8a4e">🎵 MP3 Audio</text>
+
+    <!-- Pill 3: Live Progress -->
+    <rect x="-10" y="0" width="150" height="38" rx="8" fill="#f4f1eb" stroke="#e2ded6" stroke-width="1.5"/>
+    <text x="65" y="24" text-anchor="middle" font-family="'DM Mono', monospace" font-size="14" font-weight="500" fill="#3a3a38">⚡ Live Progress</text>
+
+    <!-- Pill 4: 1000+ Sites -->
+    <rect x="160" y="0" width="150" height="38" rx="8" fill="#f4f1eb" stroke="#e2ded6" stroke-width="1.5"/>
+    <text x="235" y="24" text-anchor="middle" font-family="'DM Mono', monospace" font-size="14" font-weight="500" fill="#3a3a38">🌐 1000+ Sites</text>
+  </g>
+</svg>

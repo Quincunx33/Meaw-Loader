@@ -1,0 +1,21 @@
+{
+  "name": "reclip",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "python3 server.py",
+    "build": "python3 -m py_compile server.py",
+    "lint": "python3 -m py_compile server.py",
+    "start": "python3 server.py"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

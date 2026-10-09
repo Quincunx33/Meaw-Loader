@@ -1,0 +1,2601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="referrer" content="no-referrer">
+  <title>Meaw Loader — Free Media Downloader</title>
+  <meta name="description" content="Fast, free media downloader for YouTube, TikTok, Instagram, Twitter/X, and 1000+ sites. Download MP4 video or extract MP3 audio with live progress.">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <link rel="canonical" href="/">
+  <meta name="theme-color" content="#f4f1eb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a1a18" media="(prefers-color-scheme: dark)">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- OpenGraph Metadata -->
+  <meta property="og:site_name" content="Meaw Loader">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Meaw Loader — Free Media Downloader">
+  <meta property="og:description" content="Fast, free media downloader for YouTube, TikTok, Instagram, Twitter/X, and 1000+ sites. Download MP4 video or extract MP3 audio with live progress.">
+  <meta property="og:url" content="/">
+  <meta property="og:image" content="/static/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Meaw Loader — Free Online Media Downloader">
+
+  <!-- Twitter / X Card Metadata -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Meaw Loader — Free Media Downloader">
+  <meta name="twitter:description" content="Fast, free media downloader for YouTube, TikTok, Instagram, Twitter/X, and 1000+ sites. Download MP4 video or extract MP3 audio with live progress.">
+  <meta name="twitter:image" content="/static/og-image.svg">
+
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/static/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Schema.org Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "/#website",
+        "url": "/",
+        "name": "Meaw Loader",
+        "description": "Free online media downloader for video and audio from 1000+ websites.",
+        "inLanguage": "en-US"
+      },
+      {
+        "@type": "WebApplication",
+        "@id": "/#webapp",
+        "name": "Meaw Loader",
+        "url": "/",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "All",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "description": "Free web-based media downloader supporting YouTube, TikTok, Instagram, Twitter/X, Reddit, and 1000+ sites. Features MP4/MP3 format conversion, resolution selection, live progress bar, and local history.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "Download from 1000+ sites via yt-dlp",
+          "MP4 video resolution selection up to 1080p and 4K",
+          "High quality MP3 audio extraction",
+          "Real-time download progress bar with percentages",
+          "Local storage download history with multi-criteria sorting",
+          "Full dark mode and light mode support"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Is Meaw Loader completely free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes, Meaw Loader is 100% free and open-source. There are no subscriptions, paywalls, or download limits."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which websites can I download media from?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Meaw Loader supports over 1000+ websites including YouTube, TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, SoundCloud, Pinterest, and Loom."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I extract audio as an MP3 file?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Switch the format toggle to MP3 before grabbing, and Meaw Loader will automatically extract and convert the audio track."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I choose the video resolution and quality?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Meaw Loader displays all available resolutions (such as 1080p, 720p, 480p, 360p) with estimated file sizes for each video."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #f4f1eb;
+      --fg: #3a3a38;
+      --accent: #e85d2a;
+      --accent-hover: #d04e1f;
+      --muted: #9c9889;
+      --card: #fff;
+      --card-border: #e2ded6;
+      --success: #2d8a4e;
+      --error: #c43d3d;
+      --radius: 14px;
+      --shimmer: linear-gradient(90deg, #ebe8e2 25%, #f0ede7 50%, #ebe8e2 75%);
+    }
+
+    [data-theme='dark'] {
+      --bg: #1a1a18;
+      --fg: #e2ded6;
+      --accent: #ff7043;
+      --accent-hover: #e65100;
+      --muted: #6e6b60;
+      --card: #252523;
+      --card-border: #333330;
+      --success: #4caf50;
+      --error: #ef5350;
+      --shimmer: linear-gradient(90deg, #252523 25%, #2d2d2b 50%, #252523 75%);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.03;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-size: 128px;
+    }
+
+    .page {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+      position: relative;
+    }
+
+    .brand { margin-bottom: 48px; }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .cat-logo {
+      width: 54px;
+      height: 54px;
+      flex-shrink: 0;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .cat-logo:hover {
+      transform: scale(1.1) rotate(-4deg);
+    }
+    .brand h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 4.2rem;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      color: var(--fg);
+    }
+    .brand h1 em { font-style: italic; color: var(--accent); }
+    .brand p {
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Top Navigation (GitHub link, Shortcuts, Theme toggle) */
+    .top-nav {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 20;
+    }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1.5px solid var(--card-border);
+      background: var(--card);
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      user-select: none;
+    }
+    .nav-btn:hover {
+      border-color: var(--fg);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .nav-btn.theme-btn {
+      padding: 5px 9px;
+      font-size: 1.05rem;
+      line-height: 1;
+    }
+    .nav-btn.github-btn {
+      color: var(--fg);
+    }
+    .nav-btn.github-btn svg {
+      flex-shrink: 0;
+    }
+
+    .textarea-wrap {
+      position: relative;
+      width: 100%;
+    }
+    textarea {
+      width: 100%;
+      padding: 16px 84px 16px 18px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.88rem;
+      outline: none;
+      resize: none;
+      min-height: 60px;
+      transition: border-color 0.25s, box-shadow 0.25s;
+      margin-bottom: 0;
+      display: block;
+      line-height: 1.45;
+    }
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(232, 93, 42, 0.08);
+    }
+    textarea::placeholder { color: var(--muted); }
+
+    .clear-input-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      background: var(--card);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      transition: all 0.15s ease;
+      opacity: 0.9;
+    }
+    .clear-input-btn:hover {
+      color: var(--error);
+      border-color: var(--error);
+      background: rgba(196, 61, 61, 0.08);
+      opacity: 1;
+    }
+    .clear-icon {
+      font-size: 0.95rem;
+      line-height: 1;
+      font-weight: 600;
+    }
+    .clear-kbd {
+      font-size: 0.58rem;
+      padding: 1px 4px;
+      border-radius: 3px;
+      background: rgba(0,0,0,0.06);
+      border: 1px solid var(--card-border);
+    }
+    [data-theme='dark'] .clear-kbd {
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* Drag & Drop Overlay */
+    .textarea-wrap.drag-over textarea {
+      border-color: var(--accent);
+      background: rgba(232, 93, 42, 0.05);
+    }
+    .drop-overlay {
+      display: none;
+      position: absolute;
+      inset: 0;
+      background: var(--card);
+      border: 2px dashed var(--accent);
+      border-radius: var(--radius);
+      z-index: 10;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: var(--accent);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      pointer-events: none;
+      box-shadow: 0 4px 20px rgba(232, 93, 42, 0.15);
+    }
+    .textarea-wrap.drag-over .drop-overlay {
+      display: flex;
+    }
+    .drop-overlay svg {
+      animation: bounceSmall 0.6s ease infinite alternate;
+    }
+    @keyframes bounceSmall {
+      from { transform: translateY(0); }
+      to { transform: translateY(-4px); }
+    }
+
+    .import-file-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 9px 15px;
+      border-radius: 10px;
+      border: 1.5px solid var(--card-border);
+      background: var(--card);
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.76rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .import-file-btn:hover {
+      border-color: var(--fg);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .import-file-btn svg {
+      flex-shrink: 0;
+    }
+
+    /* Queue Header Bar */
+    .queue-header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      border: 1.5px solid var(--card-border);
+      border-radius: 10px;
+      background: var(--card);
+      animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .queue-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 500;
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.74rem;
+    }
+    .queue-badge-count {
+      background: var(--accent);
+      color: #fff;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 600;
+    }
+    .queue-status-sub {
+      font-size: 0.7rem;
+      color: var(--muted);
+      font-weight: 400;
+    }
+    .queue-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .queue-action-btn {
+      background: transparent;
+      border: 1px solid var(--card-border);
+      border-radius: 6px;
+      padding: 5px 12px;
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .queue-action-btn:hover {
+      border-color: var(--fg);
+      color: var(--accent);
+    }
+    .queue-action-btn.dl-now {
+      background: var(--fg);
+      color: var(--bg);
+      border-color: var(--fg);
+      font-weight: 500;
+    }
+    .queue-action-btn.dl-now:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .input-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 6px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .input-meta-row .hint {
+      font-size: 0.7rem;
+      color: var(--muted);
+      margin-bottom: 0;
+      letter-spacing: 0.02em;
+    }
+    .shortcut-legend {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.66rem;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+    }
+    .shortcut-tip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .kbd-key {
+      padding: 1px 5px;
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      background: var(--card);
+      color: var(--fg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.62rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 6px;
+      align-items: center;
+    }
+    .pill-group {
+      display: flex;
+      border: 1.5px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .pill {
+      padding: 9px 18px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.76rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .pill.active { background: var(--fg); color: var(--bg); }
+    .pill:not(.active):hover { color: var(--fg); }
+
+    .fetch-btn {
+      flex: 1;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .fetch-btn:hover { background: var(--accent-hover); }
+    .fetch-btn:active, .fetch-btn.btn-pressed { transform: scale(0.98); }
+    .fetch-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn-kbd {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.22);
+      color: #fff;
+      font-size: 0.66rem;
+      font-family: 'DM Mono', monospace;
+      font-weight: 500;
+      letter-spacing: 0;
+      text-transform: none;
+      border: 1px solid rgba(255, 255, 255, 0.32);
+    }
+
+    /* Cards */
+    .cards { margin-top: 24px; }
+
+    .card {
+      display: flex;
+      gap: 14px;
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius);
+      background: var(--card);
+      padding: 14px;
+      margin-bottom: 10px;
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-thumb {
+      width: 120px;
+      min-width: 120px;
+      height: 80px;
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--card-border);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    /* No-thumbnail icon */
+    .card-thumb .no-thumb {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+    .card-thumb .no-thumb svg {
+      width: 28px;
+      height: 28px;
+      opacity: 0.5;
+    }
+
+    /* Shimmer skeleton for loading state */
+    .card-thumb.loading {
+      background: var(--shimmer);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+    .skeleton-line {
+      height: 12px;
+      border-radius: 4px;
+      background: var(--shimmer);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      margin-bottom: 6px;
+    }
+    .skeleton-line.short { width: 40%; height: 10px; }
+    .skeleton-line.medium { width: 75%; }
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .card-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .card-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1rem;
+      line-height: 1.3;
+      color: var(--fg);
+      margin-bottom: 2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-meta {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .card-dl-btn {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 7px;
+      background: var(--fg);
+      color: var(--bg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .card-dl-btn:hover { background: #2d2d2a; }
+    .card-dl-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .card-dl-btn.done { background: var(--success); color: #fff; }
+    .card-dl-btn.error { background: var(--error); color: #fff; }
+
+    .card-status {
+      font-size: 0.68rem;
+      color: var(--muted);
+    }
+    .card-status.downloading { color: var(--accent); }
+    .card-status.done { color: var(--success); }
+    .card-status.error { color: var(--error); }
+
+    .card-download-active {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      width: 100%;
+    }
+    .card-actions-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-progress-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: var(--card-border);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .card-progress-bar-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+      transition: width 0.25s ease-out;
+      min-width: 2px;
+    }
+
+    .quality-selector-wrap {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .quality-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 500;
+    }
+    .quality-chips-list {
+      display: inline-flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .q-chip {
+      padding: 4px 10px;
+      border: 1.5px solid var(--card-border);
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    .q-chip .q-size {
+      font-size: 0.6rem;
+      opacity: 0.8;
+    }
+    .q-chip .q-sep {
+      opacity: 0.4;
+      font-size: 0.55rem;
+    }
+    .q-chip.active {
+      border-color: var(--fg);
+      color: var(--fg);
+      background: rgba(26,26,24,0.04);
+    }
+    [data-theme='dark'] .q-chip.active {
+      background: rgba(255,255,255,0.08);
+    }
+    .q-chip:hover:not(.active) { border-color: var(--muted); }
+
+    /* Error card */
+    .card.card-error {
+      border-color: rgba(196, 61, 61, 0.2);
+      background: rgba(196, 61, 61, 0.03);
+    }
+    .card-error-icon {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(196, 61, 61, 0.08);
+      color: var(--error);
+    }
+    .card-error-icon svg {
+      width: 24px;
+      height: 24px;
+    }
+    .card-error-msg {
+      font-size: 0.72rem;
+      color: var(--error);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+    .card-error-url {
+      font-size: 0.65rem;
+      color: var(--muted);
+      word-break: break-all;
+      margin-top: 4px;
+    }
+
+    /* Download all bar */
+    .dl-all-bar {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .dl-all-btn {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      background: var(--fg);
+      color: var(--bg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .dl-all-btn:hover { background: #2d2d2a; }
+    .dl-all-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .spin {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* History section */
+    .history-section {
+      margin-top: 40px;
+      padding-top: 28px;
+      border-top: 1.5px solid var(--card-border);
+    }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .history-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .history-sort-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .history-sort-label {
+      font-size: 0.64rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .history-sort-select {
+      background: var(--card);
+      color: var(--fg);
+      border: 1.5px solid var(--card-border);
+      border-radius: 6px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.66rem;
+      padding: 4px 8px;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .history-sort-select:hover {
+      border-color: var(--fg);
+    }
+    .history-sort-select:focus {
+      border-color: var(--accent);
+    }
+    .history-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--fg);
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .history-count {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-left: 6px;
+      letter-spacing: 0.04em;
+    }
+    .clear-history-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      cursor: pointer;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .clear-history-btn:hover {
+      color: var(--error);
+      background: rgba(196, 61, 61, 0.08);
+    }
+    .history-empty {
+      padding: 24px 16px;
+      border: 1.5px dashed var(--card-border);
+      border-radius: var(--radius);
+      background: var(--card);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.74rem;
+      letter-spacing: 0.02em;
+    }
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .history-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      border: 1.5px solid var(--card-border);
+      border-radius: 10px;
+      background: var(--card);
+      padding: 10px 12px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .history-card:hover {
+      border-color: var(--fg);
+    }
+    .hist-thumb {
+      width: 68px;
+      min-width: 68px;
+      height: 48px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: var(--card-border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+    .hist-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hist-thumb .no-thumb {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--muted);
+    }
+    .hist-thumb .no-thumb svg {
+      width: 22px;
+      height: 22px;
+      opacity: 0.6;
+    }
+    .hist-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .hist-title {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--fg);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hist-meta {
+      font-size: 0.65rem;
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hist-tag {
+      font-size: 0.6rem;
+      font-weight: 500;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: rgba(232, 93, 42, 0.12);
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .hist-tag.audio {
+      background: rgba(45, 138, 78, 0.12);
+      color: var(--success);
+    }
+    .hist-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .hist-dl-btn {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 6px;
+      background: var(--fg);
+      color: var(--bg);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 500;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      transition: background 0.2s, opacity 0.2s;
+      white-space: nowrap;
+    }
+    .hist-dl-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .hist-dl-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .hist-dl-btn.done {
+      background: var(--success);
+      color: #fff;
+    }
+    .hist-del-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      line-height: 1;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+    }
+    .hist-del-btn:hover {
+      color: var(--error);
+      background: rgba(196, 61, 61, 0.08);
+    }
+
+    /* SEO informational guide & FAQ */
+    .seo-guide {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1.5px solid var(--card-border);
+    }
+    .seo-guide h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.8rem;
+      font-weight: 400;
+      color: var(--fg);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .seo-guide-intro {
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .feature-box {
+      background: var(--card);
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+    }
+    .feature-title {
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--fg);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .feature-desc {
+      font-size: 0.67rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    .faq-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--fg);
+      margin-bottom: 12px;
+    }
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .faq-item {
+      background: var(--card);
+      border: 1.5px solid var(--card-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.72rem;
+    }
+    .faq-item[open] {
+      border-color: var(--fg);
+    }
+    .faq-question {
+      font-weight: 500;
+      color: var(--fg);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .faq-question::-webkit-details-marker {
+      display: none;
+    }
+    .faq-question::after {
+      content: '+';
+      color: var(--accent);
+      font-size: 0.95rem;
+      font-weight: bold;
+    }
+    .faq-item[open] .faq-question::after {
+      content: '−';
+    }
+    .faq-answer {
+      margin-top: 8px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.68rem;
+    }
+
+    .footer {
+      margin-top: 48px;
+      text-align: center;
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      line-height: 1.8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+    .footer-github {
+      display: inline-flex;
+      align-items: center;
+    }
+    .footer-github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border: 1.5px solid var(--card-border);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--fg);
+      text-decoration: none;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      transition: all 0.2s;
+    }
+    .footer-github-link:hover {
+      border-color: var(--fg);
+      color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .footer-sites {
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    /* Modal */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s ease, visibility 0.2s ease;
+      padding: 18px;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+    .modal-card {
+      background: var(--card);
+      border: 1.5px solid var(--card-border);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transform: scale(0.96);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .modal-backdrop.open .modal-card {
+      transform: scale(1);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      border-bottom: 1.5px solid var(--card-border);
+    }
+    .modal-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.45rem;
+      color: var(--fg);
+      margin: 0;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+    }
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      font-size: 1.3rem;
+      line-height: 1;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .modal-close-btn:hover {
+      color: var(--fg);
+    }
+    .shortcuts-grid {
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .shortcut-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      font-size: 0.74rem;
+    }
+    [data-theme='dark'] .shortcut-row {
+      border-bottom-color: rgba(255, 255, 255, 0.05);
+    }
+    .shortcut-desc {
+      color: var(--fg);
+    }
+    .shortcut-keys {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .kbd-box {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.68rem;
+      padding: 3px 7px;
+      border-radius: 5px;
+      border: 1px solid var(--card-border);
+      background: var(--bg);
+      color: var(--fg);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+    .modal-footer {
+      padding: 12px 20px;
+      border-top: 1.5px solid var(--card-border);
+      font-size: 0.66rem;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.02);
+      line-height: 1.4;
+    }
+    [data-theme='dark'] .modal-footer {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* Toast Notification */
+    .toast-notice {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      background: var(--fg);
+      color: var(--bg);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.72rem;
+      z-index: 2000;
+      transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+      letter-spacing: 0.02em;
+    }
+    .toast-notice.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    /* Mobile */
+    @media (max-width: 500px) {
+      .top-nav {
+        position: static;
+        justify-content: flex-end;
+        margin-bottom: 24px;
+      }
+      .brand h1 { font-size: 3rem; }
+      .page { padding: 30px 16px 60px; }
+      .card { flex-direction: column; gap: 10px; }
+      .card-thumb {
+        width: 100%;
+        min-width: unset;
+        height: 160px;
+      }
+      .card-title { white-space: normal; }
+      .controls { flex-wrap: wrap; }
+      .pill-group { flex: 1; min-width: 130px; }
+      .import-file-btn { flex: 1; min-width: 130px; justify-content: center; }
+      .fetch-btn { width: 100%; }
+      .features-grid { grid-template-columns: 1fr; }
+      .input-meta-row { flex-direction: column; align-items: flex-start; }
+      .nav-label { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="top-nav" aria-label="Quick links and settings">
+      <a href="https://github.com/Quincunx33/Meaw-Loader" target="_blank" rel="noopener noreferrer" class="nav-btn github-btn" title="GitHub Repository: Quincunx33/Meaw-Loader" aria-label="View on GitHub">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+          <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+        </svg>
+        <span class="nav-label">GitHub</span>
+      </a>
+      <button id="shortcuts-btn" class="nav-btn shortcuts-btn" onclick="toggleShortcutsModal()" title="Keyboard Shortcuts (?)" aria-label="Keyboard Shortcuts">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="2" y="4" width="20" height="16" rx="2.5"/>
+          <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M6 12h.001M10 12h.001M14 12h.001M18 12h.001M7 16h10"/>
+        </svg>
+        <span class="nav-label">Shortcuts</span>
+      </button>
+      <button id="theme-toggle" class="nav-btn theme-btn" onclick="toggleTheme()" aria-label="Toggle dark mode theme" title="Toggle theme">🌙</button>
+    </nav>
+
+    <header class="brand">
+      <div class="brand-header">
+        <svg class="cat-logo" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="32" cy="32" r="30" fill="var(--card)" stroke="var(--accent)" stroke-width="2.5"/>
+          <path d="M16 20 L22 32 C25 31 28.5 30.5 32 30.5 C35.5 30.5 39 31 42 32 L48 20 L45 35 C48.5 38.5 50.5 43 50.5 48 C50.5 55 42 58.5 32 58.5 C22 58.5 13.5 55 13.5 48 C13.5 43 15.5 38.5 19 35 Z" fill="var(--bg)" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+          <path d="M19 23 L22 30" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M45 23 L42 30" stroke="var(--accent)" stroke-width="1.8" stroke-linecap="round"/>
+          <ellipse cx="25" cy="42" rx="2.5" ry="3" fill="var(--fg)"/>
+          <ellipse cx="39" cy="42" rx="2.5" ry="3" fill="var(--fg)"/>
+          <polygon points="32,46.5 30,44.5 34,44.5" fill="var(--accent)"/>
+          <path d="M29.5 48 Q32 50.5 34.5 48" stroke="var(--accent)" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <path d="M13 42.5 L20 43.5 M12 46 L20 45.5 M44 43.5 L51 42.5 M44 45.5 L52 46" stroke="var(--muted)" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <h1>Meaw <em>Loader</em></h1>
+      </div>
+      <p>Free media downloader</p>
+    </header>
+
+    <section class="downloader-controls" aria-label="Media URL Input and Format Selection">
+      <div class="textarea-wrap" id="textarea-dropzone">
+        <textarea id="urls" placeholder="Paste URLs, or drag &amp; drop a .txt file..." rows="2" aria-label="Paste one or more video or media URLs"></textarea>
+        <button type="button" id="clear-input-btn" class="clear-input-btn" onclick="clearUrlInput()" title="Clear URL input (Esc)" aria-label="Clear input field" style="display: none;">
+          <span class="clear-icon" aria-hidden="true">&times;</span>
+          <kbd class="clear-kbd" id="escKbd">Esc</kbd>
+        </button>
+        <div class="drop-overlay" id="drop-overlay" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+          <span>Drop .txt file to import URLs into queue</span>
+        </div>
+      </div>
+      <div class="input-meta-row">
+        <p class="hint">Multiple links? Separate with spaces, commas, or drop a <code>.txt</code> file.</p>
+        <div class="shortcut-legend">
+          <span class="shortcut-tip"><kbd class="kbd-key" id="legendGrab">Ctrl+Enter</kbd> Grab</span>
+          <span class="shortcut-tip"><kbd class="kbd-key">Alt+I</kbd> Import</span>
+          <span class="shortcut-tip"><kbd class="kbd-key">Esc</kbd> Clear</span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="pill-group" role="radiogroup" aria-label="Download Format">
+          <button class="pill active" data-format="video" onclick="setFormat(this)" role="radio" aria-checked="true">MP4</button>
+          <button class="pill" data-format="audio" onclick="setFormat(this)" role="radio" aria-checked="false">MP3</button>
+        </div>
+        <input type="file" id="importFileInput" accept=".txt,.text,.list,.lst,.csv,text/plain" style="display: none;" onchange="handleImportFileInput(event)">
+        <button type="button" class="import-file-btn" id="importFileBtn" onclick="triggerImportFileInput()" title="Import URLs from a .txt file (Alt+I)" aria-label="Import text file with URLs">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="18" x2="12" y2="12"/>
+            <polyline points="9 15 12 12 15 15"/>
+          </svg>
+          <span>Import TXT</span>
+        </button>
+        <button class="fetch-btn" id="goBtn" onclick="go()">
+          <span id="goBtnText">Grab</span>
+          <kbd class="btn-kbd" id="goBtnKbd">Ctrl+↵</kbd>
+        </button>
+      </div>
+    </section>
+
+    <section id="cards-section" aria-label="Media Results">
+      <div id="queue-header-bar" class="queue-header-bar" style="display: none;">
+        <div class="queue-badge">
+          <span>Queue</span>
+          <span class="queue-badge-count" id="queueCount">0</span>
+          <span class="queue-status-sub" id="queueStatusSub"></span>
+        </div>
+        <div class="queue-actions">
+          <button type="button" class="queue-action-btn dl-now" id="queueDlAllBtn" onclick="dlAll()">Download All</button>
+          <button type="button" class="queue-action-btn" onclick="clearQueue()" title="Clear queue">Clear</button>
+        </div>
+      </div>
+      <div id="cards" class="cards" aria-live="polite"></div>
+    </section>
+
+    <section id="history-section" class="history-section" aria-label="Download History">
+      <div class="history-header">
+        <h2 class="history-title">History <span id="history-count" class="history-count"></span></h2>
+        <div class="history-header-actions">
+          <div class="history-sort-wrap" id="history-sort-wrap" style="display: none;">
+            <label for="history-sort" class="history-sort-label">Sort:</label>
+            <select id="history-sort" class="history-sort-select" onchange="changeHistorySort(this.value)" aria-label="Sort download history">
+              <option value="date-desc">Newest First</option>
+              <option value="date-asc">Oldest First</option>
+              <option value="title-asc">Title (A–Z)</option>
+              <option value="title-desc">Title (Z–A)</option>
+              <option value="size-desc">Size (Largest)</option>
+              <option value="size-asc">Size (Smallest)</option>
+            </select>
+          </div>
+          <button id="clear-history-btn" class="clear-history-btn" onclick="clearHistory()" style="display: none;">Clear</button>
+        </div>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+
+    <section class="seo-guide" aria-label="About Meaw Loader and Frequently Asked Questions">
+      <h2>About Meaw Loader</h2>
+      <p class="seo-guide-intro">
+        Meaw Loader is a free, privacy-first web utility designed for fast, high-quality video and audio archival. Powered by <code>yt-dlp</code>, it extracts raw video streams and high-bitrate audio from over 1,000 supported platforms directly to your device without invasive popups or third-party ads.
+      </p>
+
+      <div class="features-grid">
+        <article class="feature-box">
+          <div class="feature-title">🎬 HD Video &amp; 4K Support</div>
+          <p class="feature-desc">Download crisp MP4 video streams with granular resolution selection from 360p up to 1080p and 4K, complete with live estimated file sizes.</p>
+        </article>
+        <article class="feature-box">
+          <div class="feature-title">🎵 MP3 Audio Extraction</div>
+          <p class="feature-desc">Instantly convert clips, music, podcasts, and speeches into pristine 192–320kbps MP3 audio files with clean metadata.</p>
+        </article>
+        <article class="feature-box">
+          <div class="feature-title">⚡ Real-Time Progress Bar</div>
+          <p class="feature-desc">Monitor downloads dynamically with live server-side progress percentage tracking, speed calculation, and responsive indicators.</p>
+        </article>
+        <article class="feature-box">
+          <div class="feature-title">🔒 Offline &amp; Private History</div>
+          <p class="feature-desc">Your download logs stay strictly in your browser’s localStorage. Sort your previous files by date, title, or file size and re-download anytime.</p>
+        </article>
+      </div>
+
+      <h3 class="faq-title">Frequently Asked Questions</h3>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary class="faq-question">How do I download videos with Meaw Loader?</summary>
+          <div class="faq-answer">Simply copy the URL of any video or playlist from supported platforms, paste it into the box above, choose MP4 (video) or MP3 (audio), and click Grab. Then pick your desired resolution and hit Download.</div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Is Meaw Loader completely free?</summary>
+          <div class="faq-answer">Yes, Meaw Loader is 100% free and open-source under the MIT license. There are no subscriptions, registration requirements, or download quotas.</div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Which sites are supported?</summary>
+          <div class="faq-answer">Over 1,000 websites are supported through yt-dlp, including YouTube, TikTok, Instagram, Twitter/X, Reddit, Facebook, Vimeo, Twitch, SoundCloud, Pinterest, Loom, and Dailymotion.</div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Can I download multiple links at once?</summary>
+          <div class="faq-answer">Yes! Paste multiple URLs separated by spaces, commas, or new lines. Meaw Loader will automatically deduplicate and queue them all.</div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question">Can I import a text file (.txt) with URLs?</summary>
+          <div class="faq-answer">Yes! Click the &quot;Import TXT&quot; button or drag and drop any text file (.txt) containing URLs directly into the URL box. Meaw Loader extracts all valid links and automatically adds them to the download queue.</div>
+        </details>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-github">
+        <a href="https://github.com/Quincunx33/Meaw-Loader" target="_blank" rel="noopener noreferrer" class="footer-github-link" title="Open GitHub Repository: Quincunx33/Meaw-Loader" aria-label="Open GitHub Repository">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+            <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+          </svg>
+          <span>github.com/Quincunx33/Meaw-Loader</span>
+        </a>
+      </div>
+      <p class="footer-sites">
+        YouTube &middot; TikTok &middot; Instagram &middot; Twitter/X &middot; Reddit &middot; Facebook<br>
+        Vimeo &middot; Twitch &middot; Dailymotion &middot; SoundCloud &middot; Loom &middot; Streamable<br>
+        Pinterest &middot; Tumblr &middot; Threads &middot; LinkedIn &middot; 1000+ more
+      </p>
+    </footer>
+
+    <!-- Shortcuts Guide Modal -->
+    <div id="shortcuts-modal" class="modal-backdrop" onclick="if(event.target===this) toggleShortcutsModal(false)" aria-hidden="true">
+      <div class="modal-card" role="dialog" aria-labelledby="shortcuts-modal-title" aria-modal="true">
+        <div class="modal-header">
+          <h3 id="shortcuts-modal-title" class="modal-title">Keyboard Shortcuts</h3>
+          <button class="modal-close-btn" onclick="toggleShortcutsModal(false)" aria-label="Close shortcuts dialog">&times;</button>
+        </div>
+        <div class="shortcuts-grid">
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Grab links &amp; fetch media</span>
+            <span class="shortcut-keys"><kbd class="kbd-box" id="modalKbdGrab">Ctrl + Enter</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Clear URL input field</span>
+            <span class="shortcut-keys"><kbd class="kbd-box">Esc</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Focus URL input field</span>
+            <span class="shortcut-keys"><kbd class="kbd-box">/</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Switch format to MP4 (Video)</span>
+            <span class="shortcut-keys"><kbd class="kbd-box">Alt + 1</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Switch format to MP3 (Audio)</span>
+            <span class="shortcut-keys"><kbd class="kbd-box">Alt + 2</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Import text file (.txt) with URLs</span>
+            <span class="shortcut-keys"><kbd class="kbd-box">Alt + I</kbd></span>
+          </div>
+          <div class="shortcut-row">
+            <span class="shortcut-desc">Open / close shortcuts guide</span>
+            <span class="shortcut-keys"><kbd class="kbd-box">?</kbd></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <span>Global shortcuts work anywhere on the page.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="toast-notice" role="status" aria-live="polite"></div>
+  </main>
+
+  <script>
+    function toggleTheme() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      if (isDark) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'light');
+        document.getElementById('theme-toggle').textContent = '🌙';
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        localStorage.setItem('theme', 'dark');
+        document.getElementById('theme-toggle').textContent = '☀️';
+      }
+    }
+
+    // Apply saved theme on load
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.getElementById('theme-toggle').textContent = '☀️';
+    }
+
+    let currentFormat = 'video';
+    let cardData = [];
+
+    function setFormat(btn) {
+      document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFormat = btn.dataset.format;
+    }
+
+    function parseUrls(text) {
+      return extractUrlsFromText(text);
+    }
+
+    function extractUrlsFromText(text) {
+      if (!text || typeof text !== 'string') return [];
+      const regex = /https?:\/\/[^\s,"'<>()\[\]{}`|\^]+/gi;
+      const matches = text.match(regex) || [];
+      const cleaned = matches.map(u => u.replace(/[\.,;:!\?]+$/, '').trim());
+      return [...new Set(cleaned.filter(u => u.length > 8))];
+    }
+
+    function triggerImportFileInput() {
+      const input = document.getElementById('importFileInput');
+      if (input) {
+        input.value = '';
+        input.click();
+      }
+    }
+
+    function handleImportFileInput(event) {
+      const file = event.target.files?.[0];
+      if (file) {
+        processTextFile(file);
+      }
+    }
+
+    function processTextFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const content = e.target.result;
+          const extracted = extractUrlsFromText(content);
+          if (!extracted || extracted.length === 0) {
+            showToast(`⚠️ No valid URLs found in ${file.name}`);
+            return;
+          }
+
+          const urlsEl = document.getElementById('urls');
+          if (urlsEl) {
+            const existing = urlsEl.value.trim();
+            urlsEl.value = existing ? (existing + '\n' + extracted.join('\n')) : extracted.join('\n');
+            updateClearBtnVisibility();
+          }
+
+          showToast(`📥 Imported ${extracted.length} URL${extracted.length > 1 ? 's' : ''} from ${file.name}`);
+          await queueUrls(extracted, file.name);
+        } catch (err) {
+          showToast(`⚠️ Error processing file: ${err.message}`);
+        }
+      };
+      reader.onerror = () => {
+        showToast(`⚠️ Error reading file: ${file.name}`);
+      };
+      reader.readAsText(file);
+    }
+
+    function updateQueueHeader() {
+      const bar = document.getElementById('queue-header-bar');
+      const countEl = document.getElementById('queueCount');
+      const statusEl = document.getElementById('queueStatusSub');
+      const dlAllBtn = document.getElementById('queueDlAllBtn');
+      if (!bar) return;
+
+      if (!cardData || cardData.length === 0) {
+        bar.style.display = 'none';
+        return;
+      }
+
+      bar.style.display = 'flex';
+      if (countEl) countEl.textContent = cardData.length;
+
+      const readyCount = cardData.filter(c => c.status === 'ready').length;
+      const dlCount = cardData.filter(c => c.status === 'downloading').length;
+      const doneCount = cardData.filter(c => c.status === 'done').length;
+      const loadingCount = cardData.filter(c => c.status === 'loading').length;
+      const errCount = cardData.filter(c => c.status === 'info-error' || c.status === 'error').length;
+
+      const parts = [];
+      if (loadingCount > 0) parts.push(`${loadingCount} fetching`);
+      if (readyCount > 0) parts.push(`${readyCount} ready`);
+      if (dlCount > 0) parts.push(`${dlCount} downloading`);
+      if (doneCount > 0) parts.push(`${doneCount} saved`);
+      if (errCount > 0) parts.push(`${errCount} failed`);
+
+      if (statusEl) statusEl.textContent = parts.length ? parts.join(' · ') : `${cardData.length} items`;
+      if (dlAllBtn) {
+        dlAllBtn.style.display = readyCount > 0 ? 'inline-flex' : 'none';
+        dlAllBtn.disabled = readyCount === 0;
+      }
+    }
+
+    function clearQueue() {
+      cardData = [];
+      const container = document.getElementById('cards');
+      if (container) container.innerHTML = '';
+      const dlAllBar = document.getElementById('dl-all-bar');
+      if (dlAllBar) dlAllBar.remove();
+      updateQueueHeader();
+      showToast('Cleared download queue');
+    }
+
+    async function queueUrls(urlsToQueue, sourceName) {
+      if (!urlsToQueue || !urlsToQueue.length) return;
+
+      setGoBtnState(true);
+      const resolvedUrls = [...urlsToQueue];
+
+      // Check for youtube playlist URLs and flatten
+      for (let i = 0; i < resolvedUrls.length; i++) {
+        if (resolvedUrls[i].includes('list=')) {
+          try {
+            const res = await fetch('/api/playlist', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: resolvedUrls[i] }),
+            });
+            const data = await res.json();
+            if (data.urls && data.urls.length) {
+              resolvedUrls.splice(i, 1, ...data.urls);
+            }
+          } catch (e) {
+            console.error('Playlist expansion error:', e);
+          }
+        }
+      }
+
+      // Deduplicate against already queued items
+      const existingUrls = new Set(cardData.map(c => c.url));
+      const urlsToAdd = resolvedUrls.filter(u => !existingUrls.has(u));
+
+      if (urlsToAdd.length === 0 && resolvedUrls.length > 0) {
+        showToast('All URLs are already in queue');
+        setGoBtnState(false);
+        updateQueueHeader();
+        return;
+      }
+
+      const newIndices = [];
+      for (const url of urlsToAdd) {
+        const idx = cardData.length;
+        cardData.push({ url, status: 'loading', source: sourceName || 'manual' });
+        newIndices.push(idx);
+        renderCard(idx);
+      }
+
+      updateQueueHeader();
+
+      // Fetch metadata in batches of 3 concurrently for optimal speed
+      const batchSize = 3;
+      for (let i = 0; i < newIndices.length; i += batchSize) {
+        const chunk = newIndices.slice(i, i + batchSize);
+        await Promise.all(chunk.map(async (idx) => {
+          const c = cardData[idx];
+          try {
+            const res = await fetch('/api/info', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ url: c.url }),
+            });
+            const data = await res.json();
+            if (data.error) {
+              cardData[idx] = { ...cardData[idx], status: 'info-error', error: data.error };
+            } else {
+              cardData[idx] = {
+                ...cardData[idx],
+                status: 'ready',
+                title: data.title || '',
+                thumbnail: data.thumbnail || '',
+                duration: data.duration,
+                uploader: data.uploader || '',
+                formats: data.formats || [],
+                selectedFormatId: data.formats?.[0]?.id || null,
+                audioFilesize: data.audio_filesize,
+                audioFilesizeFormatted: data.audio_filesize_formatted,
+              };
+            }
+          } catch (err) {
+            cardData[idx] = { ...cardData[idx], status: 'info-error', error: err.message };
+          }
+          renderCard(idx);
+          updateQueueHeader();
+        }));
+      }
+
+      updateQueueHeader();
+      if (cardData.filter(c => c.status === 'ready').length > 1) {
+        renderDownloadAll();
+      }
+      setGoBtnState(false);
+    }
+
+    async function go() {
+      const urls = parseUrls(document.getElementById('urls').value);
+      if (!urls.length) {
+        showToast('Please enter or import URLs');
+        return;
+      }
+      await queueUrls(urls, 'manual');
+    }
+
+    function fmtDur(s) {
+      if (!s) return '';
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m}:${sec.toString().padStart(2, '0')}`;
+    }
+
+    function esc(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function friendlyError(err) {
+      if (err.includes('Unsupported URL')) return 'This URL is not supported';
+      if (err.includes('Video unavailable')) return 'Video is unavailable or private';
+      if (err.includes('Private video')) return 'This video is private';
+      if (err.includes('HTTP Error 403')) return 'Access denied by the platform';
+      if (err.includes('HTTP Error 404')) return 'Video not found';
+      if (err.includes('copyright')) return 'Video blocked due to copyright';
+      if (err.includes('geo')) return 'Video not available in your region';
+      if (err.includes('timed out') || err.includes('Timed out')) return 'Request timed out — try again';
+      if (err.includes('network') || err.includes('Network')) return 'Network error — check your connection';
+      return err.length > 80 ? err.slice(0, 80) + '...' : err;
+    }
+
+    /* Keyboard Shortcuts & Helpers */
+    const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/i.test(navigator.platform || navigator.userAgent);
+    const modKey = isMac ? '⌘' : 'Ctrl';
+
+    function setGoBtnState(loading) {
+      const btn = document.getElementById('goBtn');
+      const txt = document.getElementById('goBtnText');
+      const kbd = document.getElementById('goBtnKbd');
+      if (!btn) return;
+      if (loading) {
+        btn.disabled = true;
+        if (txt) txt.textContent = 'Grabbing...';
+        if (kbd) kbd.style.display = 'none';
+      } else {
+        btn.disabled = false;
+        if (txt) txt.textContent = 'Grab';
+        if (kbd) kbd.style.display = 'inline-flex';
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        t.classList.remove('show');
+      }, 2200);
+    }
+
+    function toggleShortcutsModal(force) {
+      const modal = document.getElementById('shortcuts-modal');
+      if (!modal) return;
+      const isOpen = modal.classList.contains('open');
+      const shouldOpen = typeof force === 'boolean' ? force : !isOpen;
+      if (shouldOpen) {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+      } else {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function updateClearBtnVisibility() {
+      const urlsEl = document.getElementById('urls');
+      const clearBtn = document.getElementById('clear-input-btn');
+      if (!urlsEl || !clearBtn) return;
+      if (urlsEl.value.trim().length > 0) {
+        clearBtn.style.display = 'inline-flex';
+      } else {
+        clearBtn.style.display = 'none';
+      }
+    }
+
+    function clearUrlInput() {
+      const urlsEl = document.getElementById('urls');
+      if (!urlsEl) return;
+      urlsEl.value = '';
+      updateClearBtnVisibility();
+      urlsEl.focus();
+    }
+
+    // Apply OS-specific key labels
+    const goBtnKbd = document.getElementById('goBtnKbd');
+    if (goBtnKbd) goBtnKbd.textContent = `${modKey}+↵`;
+    const legendGrab = document.getElementById('legendGrab');
+    if (legendGrab) legendGrab.textContent = `${modKey}+Enter`;
+    const modalKbdGrab = document.getElementById('modalKbdGrab');
+    if (modalKbdGrab) modalKbdGrab.textContent = `${modKey} + Enter`;
+
+    const urlsTextarea = document.getElementById('urls');
+    urlsTextarea.addEventListener('input', updateClearBtnVisibility);
+    urlsTextarea.addEventListener('keydown', e => {
+      // Ctrl+Enter or Cmd+Enter triggers Grab
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        go();
+        return;
+      }
+      // Alt+I triggers Import File
+      if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        triggerImportFileInput();
+        return;
+      }
+      // Esc clears URL input field
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        e.preventDefault();
+        if (urlsTextarea.value.length > 0) {
+          clearUrlInput();
+          showToast('Cleared URL input (Esc)');
+        }
+        return;
+      }
+      // Enter without Shift submits if single line or standard submission
+      if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        go();
+      }
+    });
+
+    // Drag & Drop text file handling on textarea wrapper
+    const dropzone = document.getElementById('textarea-dropzone');
+    if (dropzone) {
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropzone.classList.add('drag-over');
+        }, false);
+      });
+
+      ['dragleave', 'dragend'].forEach(eventName => {
+        dropzone.addEventListener(eventName, e => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!dropzone.contains(e.relatedTarget)) {
+            dropzone.classList.remove('drag-over');
+          }
+        }, false);
+      });
+
+      dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.classList.remove('drag-over');
+
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) {
+          processTextFile(files[0]);
+          return;
+        }
+
+        const text = e.dataTransfer?.getData('text');
+        if (text) {
+          const extracted = extractUrlsFromText(text);
+          if (extracted.length) {
+            const urlsEl = document.getElementById('urls');
+            if (urlsEl) {
+              const existing = urlsEl.value.trim();
+              urlsEl.value = existing ? (existing + '\n' + extracted.join('\n')) : extracted.join('\n');
+              updateClearBtnVisibility();
+            }
+            showToast(`📥 Queued ${extracted.length} URL${extracted.length > 1 ? 's' : ''}`);
+            queueUrls(extracted, 'dropped-text');
+          }
+        }
+      }, false);
+    }
+
+    // Global keyboard shortcuts
+    window.addEventListener('keydown', e => {
+      const modal = document.getElementById('shortcuts-modal');
+      const isModalOpen = modal && modal.classList.contains('open');
+
+      // 1. Esc: close shortcuts modal if open, otherwise clear URL input field globally
+      if (e.key === 'Escape' || e.keyCode === 27) {
+        if (isModalOpen) {
+          e.preventDefault();
+          toggleShortcutsModal(false);
+          return;
+        }
+        const urlsEl = document.getElementById('urls');
+        if (urlsEl && urlsEl.value.trim().length > 0) {
+          e.preventDefault();
+          clearUrlInput();
+          showToast('Cleared URL input (Esc)');
+          return;
+        }
+      }
+
+      // 2. Ctrl+Enter or Cmd+Enter: global trigger for 'Grab' button
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        const btn = document.getElementById('goBtn');
+        if (btn && !btn.disabled) {
+          btn.classList.add('btn-pressed');
+          setTimeout(() => btn.classList.remove('btn-pressed'), 180);
+          go();
+        }
+        return;
+      }
+
+      // 3. Alt+I to trigger import file dialog
+      if (e.altKey && (e.key === 'i' || e.key === 'I')) {
+        e.preventDefault();
+        triggerImportFileInput();
+        return;
+      }
+
+      // 4. Alt+1 for MP4, Alt+2 for MP3
+      if (e.altKey && (e.key === '1' || e.code === 'Digit1')) {
+        e.preventDefault();
+        const videoBtn = document.querySelector('.pill[data-format="video"]');
+        if (videoBtn) setFormat(videoBtn);
+        showToast('Format: MP4 (Video)');
+        return;
+      }
+      if (e.altKey && (e.key === '2' || e.code === 'Digit2')) {
+        e.preventDefault();
+        const audioBtn = document.querySelector('.pill[data-format="audio"]');
+        if (audioBtn) setFormat(audioBtn);
+        showToast('Format: MP3 (Audio)');
+        return;
+      }
+
+      // 5. "/" key to focus URL input (when not actively inside input/textarea)
+      const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName);
+      if (e.key === '/' && !isTyping && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        const urlsEl = document.getElementById('urls');
+        if (urlsEl) {
+          urlsEl.focus();
+          urlsEl.select();
+        }
+        return;
+      }
+
+      // 6. "?" key to toggle shortcuts modal (when not actively typing)
+      if (e.key === '?' && !isTyping) {
+        e.preventDefault();
+        toggleShortcutsModal();
+      }
+    });
+
+    function renderCard(idx) {
+      const c = cardData[idx];
+      let el = document.getElementById(`card-${idx}`);
+      if (!el) {
+        el = document.createElement('div');
+        el.id = `card-${idx}`;
+        el.className = 'card';
+        document.getElementById('cards').appendChild(el);
+      }
+
+      // Loading skeleton
+      if (c.status === 'loading') {
+        el.className = 'card';
+        el.innerHTML = `
+          <div class="card-thumb loading"></div>
+          <div class="card-body">
+            <div class="skeleton-line medium"></div>
+            <div class="skeleton-line short"></div>
+          </div>
+        `;
+        return;
+      }
+
+      // Error state
+      if (c.status === 'info-error') {
+        el.className = 'card card-error';
+        el.innerHTML = `
+          <div class="card-thumb">
+            <div class="card-error-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-title" style="color:var(--error)">Could not fetch video</div>
+            <div class="card-error-msg">${esc(friendlyError(c.error || ''))}</div>
+            <div class="card-error-url">${esc(c.url)}</div>
+          </div>
+        `;
+        return;
+      }
+
+      // Ready / downloading / done / error states
+      el.className = 'card';
+      const isAudio = currentFormat === 'audio';
+
+      let thumbHtml;
+      if (isAudio) {
+        thumbHtml = `<div class="no-thumb" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+      } else if (c.thumbnail) {
+        thumbHtml = `<img src="${esc(c.thumbnail)}" alt="" referrerpolicy="no-referrer" loading="lazy" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\\'no-thumb\\\'><svg viewBox=\\\'0 0 24 24\\\' fill=\\\'none\\\' stroke=\\\'currentColor\\\' stroke-width=\\\'1.5\\\' stroke-linecap=\\\'round\\\' stroke-linejoin=\\\'round\\\'><rect x=\\\'2\\\' y=\\\'2\\\' width=\\\'20\\\' height=\\\'20\\\' rx=\\\'2\\\'/><circle cx=\\\'8\\\' cy=\\\'8\\\' r=\\\'1.5\\\'/><path d=\\\'m21 15-5-5L5 21\\\'/></svg></div>';">`;
+      } else {
+        thumbHtml = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+      }
+
+      const selectedFormat = (c.formats || []).find(f => f.id === c.selectedFormatId) || c.formats?.[0];
+      const selectedSize = isAudio
+        ? c.audioFilesizeFormatted
+        : (selectedFormat?.filesize_formatted || null);
+
+      let qualityChips = '';
+      if (!isAudio && c.formats && c.formats.length > 1) {
+        qualityChips = `
+          <div class="quality-selector-wrap">
+            <span class="quality-label">Quality:</span>
+            <div class="quality-chips-list">
+              ${c.formats.map(f => {
+                const sizeHtml = f.filesize_formatted ? `<span class="q-sep">&middot;</span><span class="q-size">${f.filesize_formatted}</span>` : '';
+                return `<button class="q-chip${f.id === c.selectedFormatId ? ' active' : ''}" onclick="pickFormat(${idx}, '${f.id}')" title="Estimated size: ${f.filesize_formatted || 'unknown'}">${f.label}${sizeHtml}</button>`;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      const activeLabel = !isAudio && selectedFormat ? selectedFormat.label : (isAudio ? 'MP3' : 'MP4');
+      let actionHtml = '';
+      if (c.status === 'ready') {
+        actionHtml = `<button class="card-dl-btn" onclick="dlCard(${idx})">Download (${activeLabel})</button>${qualityChips}`;
+      } else if (c.status === 'downloading') {
+        const pct = Math.max(0, Math.min(100, Math.round(c.percent || 0)));
+        actionHtml = `
+          <div class="card-download-active">
+            <div class="card-actions-row">
+              <button class="card-dl-btn" disabled><span class="spin"></span> Downloading...</button>
+              <span class="card-status downloading">${pct}%</span>
+            </div>
+            <div class="card-progress-bar-wrap">
+              <div class="card-progress-bar-fill" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+        `;
+      } else if (c.status === 'done') {
+        actionHtml = `<button class="card-dl-btn done" onclick="saveCard(${idx})">Save</button>
+          <span class="card-status done">${esc(c.filename || '')}</span>`;
+      } else if (c.status === 'error') {
+        actionHtml = `<button class="card-dl-btn" onclick="dlCard(${idx})">Retry</button>
+          <span class="card-status error">${esc(friendlyError(c.error || 'Download failed'))}</span>`;
+      }
+
+      const metaParts = [];
+      if (c.uploader) metaParts.push(esc(c.uploader));
+      if (c.duration) metaParts.push(fmtDur(c.duration));
+      if (!isAudio && selectedFormat) metaParts.push(selectedFormat.label);
+      if (selectedSize) metaParts.push(`~${selectedSize}`);
+      const metaContent = metaParts.join(' &middot; ');
+
+      el.innerHTML = `
+        <div class="card-thumb">${thumbHtml}</div>
+        <div class="card-body">
+          <div class="card-title">${esc(c.title || 'Untitled')}</div>
+          <div class="card-meta">${metaContent}</div>
+          <div class="card-actions">${actionHtml}</div>
+        </div>
+      `;
+    }
+
+    function renderDownloadAll() {
+      const existing = document.getElementById('dl-all-bar');
+      if (existing) existing.remove();
+
+      const bar = document.createElement('div');
+      bar.id = 'dl-all-bar';
+      bar.className = 'dl-all-bar';
+      bar.innerHTML = `<button class="dl-all-btn" onclick="dlAll()">Download All</button>`;
+      document.getElementById('cards').appendChild(bar);
+    }
+
+    function pickFormat(idx, formatId) {
+      cardData[idx].selectedFormatId = formatId;
+      renderCard(idx);
+    }
+
+    async function dlCard(idx) {
+      const c = cardData[idx];
+      c.status = 'downloading';
+      c.percent = 0;
+      c.error = null;
+      c.format = currentFormat;
+      renderCard(idx);
+      updateQueueHeader();
+
+      try {
+        const res = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: c.url,
+            format: currentFormat,
+            format_id: c.selectedFormatId,
+            title: c.title || '',
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          c.status = 'error';
+          c.error = data.error;
+          renderCard(idx);
+          updateQueueHeader();
+          return;
+        }
+        c.jobId = data.job_id;
+        pollCard(idx);
+      } catch (err) {
+        c.status = 'error';
+        c.error = err.message;
+        renderCard(idx);
+        updateQueueHeader();
+      }
+    }
+
+    function pollCard(idx) {
+      const c = cardData[idx];
+      const iv = setInterval(async () => {
+        try {
+          const res = await fetch(`/api/status/${c.jobId}`);
+          const data = await res.json();
+          if (data.status === 'done') {
+            clearInterval(iv);
+            c.status = 'done';
+            c.percent = 100;
+            c.filename = data.filename;
+            renderCard(idx);
+            updateQueueHeader();
+            saveCard(idx);
+            addToHistory(c);
+          } else if (data.status === 'error') {
+            clearInterval(iv);
+            c.status = 'error';
+            c.error = data.error;
+            renderCard(idx);
+            updateQueueHeader();
+          } else if (data.status === 'downloading' || data.status === 'processing') {
+            const newPercent = typeof data.percent === 'number' ? data.percent : (c.percent || 0);
+            if (c.percent !== newPercent) {
+              c.percent = newPercent;
+              renderCard(idx);
+              updateQueueHeader();
+            }
+          }
+        } catch {
+          clearInterval(iv);
+          c.status = 'error';
+          c.error = 'Lost connection to server';
+          renderCard(idx);
+          updateQueueHeader();
+        }
+      }, 600);
+    }
+
+    function saveCard(idx) {
+      const c = cardData[idx];
+      if (!c.jobId) return;
+      triggerFileSave(c.jobId, c.filename || '');
+    }
+
+    function triggerFileSave(jobId, filename) {
+      const a = document.createElement('a');
+      a.href = `/api/file/${jobId}`;
+      a.download = filename || '';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function dlAll() {
+      const btn = document.querySelector('.dl-all-btn');
+      const queueBtn = document.getElementById('queueDlAllBtn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Downloading...'; }
+      if (queueBtn) { queueBtn.disabled = true; queueBtn.textContent = 'Downloading...'; }
+
+      for (let i = 0; i < cardData.length; i++) {
+        if (cardData[i].status === 'ready') {
+          await dlCard(i);
+        }
+      }
+
+      if (btn) { btn.disabled = false; btn.textContent = 'Download All'; }
+      if (queueBtn) { queueBtn.disabled = false; queueBtn.textContent = 'Download All'; }
+    }
+
+    /* History Management */
+    const HISTORY_KEY = 'reclip_history';
+
+    function getHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveHistory(list) {
+      try {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(list.slice(0, 10)));
+      } catch (e) {
+        console.error('Failed to save history:', e);
+      }
+    }
+
+    function addToHistory(c) {
+      let history = getHistory();
+      const format = c.format || currentFormat || 'video';
+      const formatId = c.selectedFormatId || null;
+
+      // Remove previous entry with identical URL and format
+      history = history.filter(h => !(h.url === c.url && h.format === format && (h.formatId || null) === formatId));
+
+      const selectedFormat = (c.formats || []).find(f => f.id === formatId) || c.formats?.[0];
+      const selectedSize = (format === 'audio')
+        ? c.audioFilesizeFormatted
+        : (selectedFormat?.filesize_formatted || null);
+
+      const item = {
+        id: 'hist_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        url: c.url,
+        title: c.title || 'Untitled',
+        thumbnail: c.thumbnail || '',
+        duration: c.duration || 0,
+        uploader: c.uploader || '',
+        format: format,
+        formatId: formatId,
+        filename: c.filename || '',
+        filesize: selectedSize,
+        jobId: c.jobId || null,
+        timestamp: Date.now(),
+      };
+
+      history.unshift(item);
+      saveHistory(history);
+      renderHistory();
+    }
+
+    function clearHistory() {
+      if (confirm('Clear all download history?')) {
+        saveHistory([]);
+        renderHistory();
+      }
+    }
+
+    function removeFromHistory(id, e) {
+      if (e) e.stopPropagation();
+      let history = getHistory();
+      history = history.filter(h => h.id !== id);
+      saveHistory(history);
+      renderHistory();
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return '';
+      const sec = Math.floor((Date.now() - ts) / 1000);
+      if (sec < 60) return 'just now';
+      const min = Math.floor(sec / 60);
+      if (min < 60) return `${min}m ago`;
+      const hrs = Math.floor(min / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      const days = Math.floor(hrs / 24);
+      return `${days}d ago`;
+    }
+
+    async function reDownloadHistoryItem(id, btn) {
+      const history = getHistory();
+      const item = history.find(h => h.id === id);
+      if (!item) return;
+
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spin"></span> Downloading...';
+      }
+
+      // Check if file is still cached on server
+      if (item.jobId) {
+        try {
+          const res = await fetch(`/api/status/${item.jobId}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.status === 'done') {
+              triggerFileSave(item.jobId, item.filename || data.filename);
+              if (btn) {
+                btn.innerHTML = 'Saved!';
+                btn.classList.add('done');
+                setTimeout(() => {
+                  btn.disabled = false;
+                  btn.innerHTML = 'Download';
+                  btn.classList.remove('done');
+                }, 1800);
+              }
+              return;
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Request new download directly without re-fetching info
+      try {
+        const res = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: item.url,
+            format: item.format || 'video',
+            format_id: item.formatId || null,
+            title: item.title || '',
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          if (btn) {
+            btn.innerHTML = 'Error';
+            setTimeout(() => {
+              btn.disabled = false;
+              btn.innerHTML = 'Download';
+            }, 2000);
+          }
+          return;
+        }
+
+        const newJobId = data.job_id;
+        item.jobId = newJobId;
+
+        const iv = setInterval(async () => {
+          try {
+            const statusRes = await fetch(`/api/status/${newJobId}`);
+            const statusData = await statusRes.json();
+            if (statusData.status === 'done') {
+              clearInterval(iv);
+              item.filename = statusData.filename || item.filename;
+              item.timestamp = Date.now();
+              saveHistory(history);
+              triggerFileSave(newJobId, item.filename);
+              renderHistory();
+            } else if (statusData.status === 'error') {
+              clearInterval(iv);
+              if (btn) {
+                btn.innerHTML = 'Failed';
+                setTimeout(() => {
+                  btn.disabled = false;
+                  btn.innerHTML = 'Download';
+                }, 2000);
+              }
+            } else if (statusData.status === 'downloading' || statusData.status === 'processing') {
+              if (btn && typeof statusData.percent === 'number') {
+                btn.innerHTML = `<span class="spin"></span> ${Math.round(statusData.percent)}%`;
+              }
+            }
+          } catch {
+            clearInterval(iv);
+            if (btn) {
+              btn.innerHTML = 'Error';
+              setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'Download';
+              }, 2000);
+            }
+          }
+        }, 1000);
+      } catch (err) {
+        if (btn) {
+          btn.innerHTML = 'Failed';
+          setTimeout(() => {
+            btn.disabled = false;
+            btn.innerHTML = 'Download';
+          }, 2000);
+        }
+      }
+    }
+
+    function parseSizeToBytes(sizeStr) {
+      if (!sizeStr || typeof sizeStr !== 'string') return 0;
+      const clean = sizeStr.replace('~', '').trim().toUpperCase();
+      const match = clean.match(/^([\d.]+)\s*(KB|MB|GB)?$/);
+      if (!match) return 0;
+      const num = parseFloat(match[1]);
+      const unit = match[2];
+      if (unit === 'KB') return num * 1024;
+      if (unit === 'MB') return num * 1024 * 1024;
+      if (unit === 'GB') return num * 1024 * 1024 * 1024;
+      return num;
+    }
+
+    let currentHistorySort = localStorage.getItem('reclip_history_sort') || 'date-desc';
+
+    function changeHistorySort(val) {
+      currentHistorySort = val;
+      try {
+        localStorage.setItem('reclip_history_sort', val);
+      } catch (_) {}
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const container = document.getElementById('history-list');
+      const countEl = document.getElementById('history-count');
+      const clearBtn = document.getElementById('clear-history-btn');
+      const sortWrap = document.getElementById('history-sort-wrap');
+      const sortSelect = document.getElementById('history-sort');
+      if (!container) return;
+
+      const history = getHistory();
+      if (countEl) countEl.textContent = history.length ? `(${history.length})` : '';
+      if (clearBtn) clearBtn.style.display = history.length ? 'inline-block' : 'none';
+      if (sortWrap) sortWrap.style.display = history.length > 1 ? 'flex' : 'none';
+      if (sortSelect) sortSelect.value = currentHistorySort;
+
+      if (!history.length) {
+        container.innerHTML = `<div class="history-empty">No download history yet. Completed downloads will appear here.</div>`;
+        return;
+      }
+
+      history.sort((a, b) => {
+        if (currentHistorySort === 'date-asc') {
+          return (a.timestamp || 0) - (b.timestamp || 0);
+        }
+        if (currentHistorySort === 'date-desc') {
+          return (b.timestamp || 0) - (a.timestamp || 0);
+        }
+        if (currentHistorySort === 'title-asc') {
+          const tA = (a.title || a.filename || '').toLowerCase();
+          const tB = (b.title || b.filename || '').toLowerCase();
+          return tA.localeCompare(tB);
+        }
+        if (currentHistorySort === 'title-desc') {
+          const tA = (a.title || a.filename || '').toLowerCase();
+          const tB = (b.title || b.filename || '').toLowerCase();
+          return tB.localeCompare(tA);
+        }
+        if (currentHistorySort === 'size-desc') {
+          return parseSizeToBytes(b.filesize) - parseSizeToBytes(a.filesize);
+        }
+        if (currentHistorySort === 'size-asc') {
+          return parseSizeToBytes(a.filesize) - parseSizeToBytes(b.filesize);
+        }
+        return (b.timestamp || 0) - (a.timestamp || 0);
+      });
+
+      container.innerHTML = history.map(item => {
+        const isAudio = item.format === 'audio';
+        let thumbHtml;
+        if (isAudio) {
+          thumbHtml = `<div class="no-thumb" style="color:var(--accent)"><svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+        } else if (item.thumbnail) {
+          thumbHtml = `<img src="${esc(item.thumbnail)}" alt="" onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\\\'no-thumb\\\'><svg viewBox=\\\'0 0 24 24\\\' fill=\\\'none\\\' stroke=\\\'currentColor\\\' stroke-width=\\\'1.5\\\'><rect x=\\\'2\\\' y=\\\'2\\\' width=\\\'20\\\' height=\\\'20\\\' rx=\\\'2\\\'/><circle cx=\\\'8\\\' cy=\\\'8\\\' r=\\\'1.5\\\'/><path d=\\\'m21 15-5-5L5 21\\\'/></svg></div>';">`;
+        } else {
+          thumbHtml = `<div class="no-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="2"/><circle cx="8" cy="8" r="1.5"/><path d="m21 15-5-5L5 21"/></svg></div>`;
+        }
+
+        const tagText = isAudio ? 'MP3' : 'MP4';
+        const timeText = timeAgo(item.timestamp);
+        const metaParts = [];
+        if (item.uploader) metaParts.push(esc(item.uploader));
+        if (item.duration) metaParts.push(fmtDur(item.duration));
+        if (item.filesize) metaParts.push(`~${item.filesize}`);
+        if (timeText) metaParts.push(timeText);
+
+        return `
+          <div class="history-card" id="hist-card-${item.id}">
+            <div class="hist-thumb">${thumbHtml}</div>
+            <div class="hist-body">
+              <div class="hist-title" title="${esc(item.title || item.filename || item.url)}">${esc(item.title || item.filename || 'Untitled')}</div>
+              <div class="hist-meta">
+                <span class="hist-tag ${isAudio ? 'audio' : ''}">${tagText}</span>
+                ${metaParts.map(m => `<span>${m}</span>`).join('<span>&middot;</span>')}
+              </div>
+            </div>
+            <div class="hist-actions">
+              <button class="hist-dl-btn" onclick="reDownloadHistoryItem('${item.id}', this)">Download</button>
+              <button class="hist-del-btn" onclick="removeFromHistory('${item.id}', event)" title="Remove from history">&times;</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize history display on load
+    renderHistory();
+  </script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+node_modules/
+downloads/
+bin/yt-dlp
+assets/*.mov
+.DS_Store
+.env
+.env.local
+.env.production
+.env.development
