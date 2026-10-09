@@ -403,7 +403,7 @@ class ReClipHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 3000))
+    port = int(os.environ.get("PORT", 33073))
     host = "0.0.0.0"
     server = ThreadingHTTPServer((host, port), ReClipHandler)
     print(f"ReClip Python server listening on http://{host}:{port}")
