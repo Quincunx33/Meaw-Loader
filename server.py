@@ -8,7 +8,15 @@ import threading
 from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 
-# Ensure yt_dlp is importable from bundled binary
+# Ensure yt_dlp is importable from bundled binary or container pip install
+local_bin = "/home/container/.local/bin"
+if os.path.exists(local_bin) and local_bin not in os.environ.get("PATH", ""):
+    os.environ["PATH"] = f"{local_bin}:{os.environ.get('PATH', '')}"
+
+for p in ["/home/container/.local/lib/python3.13/site-packages", "/home/container/.local/lib/python3.10/site-packages", "/home/container/.local/lib/python3.11/site-packages", "/home/container/.local/lib/python3.12/site-packages"]:
+    if os.path.exists(p) and p not in sys.path:
+        sys.path.insert(0, p)
+
 bin_path = os.path.join(os.path.dirname(__file__), "bin", "yt-dlp")
 if os.path.exists(bin_path):
     sys.path.insert(0, bin_path)
@@ -125,18 +133,44 @@ def run_download_thread(job_id, url, format_choice, format_id):
         job["error"] = str(e)
 
 
-class ReClipHandler(BaseHTTPRequestHandler):
+class MeawHandler(BaseHTTPRequestHandler):
+    def send_cors_headers(self):
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Range")
+        self.send_header("Access-Control-Expose-Headers", "Content-Length, Content-Range, Content-Disposition")
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_cors_headers()
+        self.end_headers()
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.send_cors_headers()
+        self.end_headers()
+
     def send_json_response(self, data, status_code=200):
         body = json.dumps(data).encode("utf-8")
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
+        self.send_cors_headers()
         self.end_headers()
         self.wfile.write(body)
 
     def do_GET(self):
         parsed = urlparse(self.path)
         path = parsed.path
+
+        if path == "/api/health" or path == "/health":
+            self.send_json_response({
+                "status": "ok",
+                "service": "Meaw Loader Backend",
+                "engine": "yt-dlp",
+                "version": "1.0.0"
+            })
+            return
 
         if path == "/" or path == "/index.html":
             file_path = os.path.join(BASE_DIR, "templates", "index.html")
@@ -147,6 +181,7 @@ class ReClipHandler(BaseHTTPRequestHandler):
                 self.send_header("Content-Type", "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(content)))
                 self.send_header("X-Content-Type-Options", "nosniff")
+                self.send_cors_headers()
                 self.end_headers()
                 self.wfile.write(content)
             else:
@@ -245,6 +280,7 @@ class ReClipHandler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "application/octet-stream")
             self.send_header("Content-Length", str(file_size))
             self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
+            self.send_cors_headers()
             self.end_headers()
 
             with open(file_path, "rb") as f:
@@ -402,12 +438,42 @@ class ReClipHandler(BaseHTTPRequestHandler):
         sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
 
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 33073))
-    host = "0.0.0.0"
-    server = ThreadingHTTPServer((host, port), ReClipHandler)
-    print(f"ReClip Python server listening on http://{host}:{port}")
+active_servers = []
+
+
+def run_port_listener(port_num, is_main=False):
     try:
-        server.serve_forever()
+        httpd = ThreadingHTTPServer(("0.0.0.0", port_num), MeawHandler)
+        active_servers.append(httpd)
+        print(f"Meaw Loader listening on http://0.0.0.0:{port_num} ({'PRIMARY' if is_main else 'AUXILIARY'})")
+        httpd.serve_forever()
+    except OSError as e:
+        if is_main:
+            print(f"Notice: Port {port_num} could not be bound directly ({e}). Trying backup ports...")
+    except Exception as e:
+        print(f"Notice: Port {port_num} listener closed: {e}")
+
+
+if __name__ == "__main__":
+    env_port = os.environ.get("PORT") or os.environ.get("SERVER_PORT")
+    primary_port = int(env_port) if env_port else 33073
+
+    # Common reverse proxy ports used by Botkeep / Pterodactyl domain mappings
+    target_ports = [primary_port, 33073, 8080, 3000, 8000, 5000]
+    seen_ports = set()
+    unique_ports = []
+    for p in target_ports:
+        if p not in seen_ports:
+            seen_ports.add(p)
+            unique_ports.append(p)
+
+    # Spawn background threads for other potential proxy ports
+    for p in unique_ports[1:]:
+        t = threading.Thread(target=run_port_listener, args=(p, False), daemon=True)
+        t.start()
+
+    # Run primary port in main thread
+    try:
+        run_port_listener(unique_ports[0], True)
     except KeyboardInterrupt:
-        pass
+        print("\nMeaw Loader stopped by user.")

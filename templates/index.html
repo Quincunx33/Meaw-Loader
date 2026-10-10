@@ -1708,6 +1708,23 @@
       document.getElementById('theme-toggle').textContent = '☀️';
     }
 
+    function getBackendUrl() {
+      const custom = localStorage.getItem('meaw_backend_url');
+      if (custom) return custom.trim().replace(/\/+$/, '');
+      const hostname = window.location.hostname || '';
+      if (hostname.endsWith('pages.dev') || hostname.includes('cloudflare')) {
+        return 'https://meaw.bot-keep.xyz';
+      }
+      return '';
+    }
+
+    function apiUrl(endpoint) {
+      const base = getBackendUrl();
+      if (!base) return endpoint;
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+      return `${base}${cleanEndpoint}`;
+    }
+
     let currentFormat = 'video';
     let cardData = [];
 
@@ -1830,7 +1847,7 @@
       for (let i = 0; i < resolvedUrls.length; i++) {
         if (resolvedUrls[i].includes('list=')) {
           try {
-            const res = await fetch('/api/playlist', {
+            const res = await fetch(apiUrl('/api/playlist'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: resolvedUrls[i] }),
@@ -1873,7 +1890,7 @@
         await Promise.all(chunk.map(async (idx) => {
           const c = cardData[idx];
           try {
-            const res = await fetch('/api/info', {
+            const res = await fetch(apiUrl('/api/info'), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: c.url }),
@@ -2315,7 +2332,7 @@
       updateQueueHeader();
 
       try {
-        const res = await fetch('/api/download', {
+        const res = await fetch(apiUrl('/api/download'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2347,7 +2364,7 @@
       const c = cardData[idx];
       const iv = setInterval(async () => {
         try {
-          const res = await fetch(`/api/status/${c.jobId}`);
+          const res = await fetch(apiUrl(`/api/status/${c.jobId}`));
           const data = await res.json();
           if (data.status === 'done') {
             clearInterval(iv);
@@ -2390,7 +2407,7 @@
 
     function triggerFileSave(jobId, filename) {
       const a = document.createElement('a');
-      a.href = `/api/file/${jobId}`;
+      a.href = apiUrl(`/api/file/${jobId}`);
       a.download = filename || '';
       document.body.appendChild(a);
       a.click();
@@ -2414,8 +2431,8 @@
     }
 
     /* History Management */
-    const HISTORY_KEY = 'reclip_history';
-    let currentHistorySort = localStorage.getItem('reclip_history_sort') || 'date-desc';
+    const HISTORY_KEY = 'meaw_history';
+    let currentHistorySort = localStorage.getItem('meaw_history_sort') || localStorage.getItem('reclip_history_sort') || 'date-desc';
 
     function parseSizeToBytes(sizeStr) {
       if (!sizeStr || typeof sizeStr !== 'string') return 0;
@@ -2433,14 +2450,14 @@
     function changeHistorySort(val) {
       currentHistorySort = val;
       try {
-        localStorage.setItem('reclip_history_sort', val);
+        localStorage.setItem('meaw_history_sort', val);
       } catch (_) {}
       renderHistory();
     }
 
     function getHistory() {
       try {
-        const raw = localStorage.getItem(HISTORY_KEY);
+        const raw = localStorage.getItem(HISTORY_KEY) || localStorage.getItem('reclip_history');
         return raw ? JSON.parse(raw) : [];
       } catch (e) {
         return [];
