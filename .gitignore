@@ -6,4 +6,5 @@ assets/*.mov
 .env
 .env.local
 .env.production
-.env.development
+.env.development__pycache__/
+*.py[cod]
