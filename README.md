@@ -55,7 +55,7 @@
    ```
    *(Or with npm: `npm run dev`)*
 
-3. Open **http://localhost:3000** in your browser.
+3. Open **http://localhost:8080** in your browser.
 
 ---
 
@@ -72,7 +72,7 @@
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Python 3 (`http.server.ThreadingHTTPServer`)
+- **Backend**: Python 3 (`Flask`)
 - **Engine**: [yt-dlp](https://github.com/yt-dlp/yt-dlp) + [ffmpeg](https://ffmpeg.org/)
 - **Frontend**: Vanilla HTML5, CSS3, ES6 JavaScript
 - **Typography**: Instrument Serif & DM Mono

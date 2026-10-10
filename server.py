@@ -1,479 +1,290 @@
 import os
-import sys
-import json
-import uuid
-import glob
-import mimetypes
+import re
+import shutil
 import threading
-from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse
+import time
+import uuid
+from pathlib import Path
+from typing import Any
 
-# Ensure yt_dlp is importable from bundled binary or container pip install
-local_bin = "/home/container/.local/bin"
-if os.path.exists(local_bin) and local_bin not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = f"{local_bin}:{os.environ.get('PATH', '')}"
-
-for p in ["/home/container/.local/lib/python3.13/site-packages", "/home/container/.local/lib/python3.10/site-packages", "/home/container/.local/lib/python3.11/site-packages", "/home/container/.local/lib/python3.12/site-packages"]:
-    if os.path.exists(p) and p not in sys.path:
-        sys.path.insert(0, p)
-
-bin_path = os.path.join(os.path.dirname(__file__), "bin", "yt-dlp")
-if os.path.exists(bin_path):
-    sys.path.insert(0, bin_path)
+from flask import Flask, jsonify, request, send_file, send_from_directory
 
 try:
     import yt_dlp
-except ImportError:
+except ImportError:  # pragma: no cover
     yt_dlp = None
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DOWNLOAD_DIR = os.path.join(BASE_DIR, "downloads")
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent
+INDEX_FILE = BASE_DIR / "templates" / "index.html"
+if not INDEX_FILE.is_file():
+    INDEX_FILE = BASE_DIR / "index(2).html"
+DOWNLOAD_DIR = BASE_DIR / "downloads"
+DOWNLOAD_DIR.mkdir(exist_ok=True)
 
-jobs = {}
+app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024
+
+jobs: dict[str, dict[str, Any]] = {}
+jobs_lock = threading.Lock()
 
 
-def format_bytes(b):
-    if not b or b <= 0:
+def error_response(message: str, status: int = 400):
+    return jsonify({"error": message}), status
+
+
+def require_ytdlp():
+    if yt_dlp is None:
+        raise RuntimeError("yt-dlp is not installed. Run: pip install -r requirements.txt")
+
+
+def validate_url(value: Any) -> str:
+    url = str(value or "").strip()
+    if not re.match(r"^https?://", url, re.I) or len(url) > 4096:
+        raise ValueError("Please provide a valid http(s) URL")
+    return url
+
+
+def format_size(size: int | float | None) -> str | None:
+    if not size:
         return None
-    if b < 1024 * 1024:
-        return f"{round(b / 1024)} KB"
-    if b < 1024 * 1024 * 1024:
-        mb = b / (1024 * 1024)
-        return f"{round(mb)} MB" if mb >= 100 else f"{mb:.1f} MB"
-    gb = b / (1024 * 1024 * 1024)
-    return f"{gb:.1f} GB"
+    size = float(size)
+    for unit in ("B", "KB", "MB", "GB", "TB"):
+        if size < 1024 or unit == "TB":
+            return f"{size:.1f} {unit}" if unit != "B" else f"{int(size)} B"
+        size /= 1024
+    return None
 
 
-def run_download_thread(job_id, url, format_choice, format_id):
-    job = jobs.get(job_id)
-    if not job:
-        return
+def format_duration(seconds: Any) -> int | None:
+    try:
+        return int(float(seconds)) if seconds is not None else None
+    except (TypeError, ValueError):
+        return None
 
-    out_template = os.path.join(DOWNLOAD_DIR, f"{job_id}.%(ext)s")
 
-    def progress_hook(d):
-        status = d.get("status")
-        if status == "downloading":
-            total = d.get("total_bytes") or d.get("total_bytes_estimate") or 0
-            downloaded = d.get("downloaded_bytes") or 0
-            if total > 0:
-                pct = min(99.0, max(0.0, round((downloaded / total) * 100, 1)))
-                job["percent"] = pct
-            else:
-                job["percent"] = 0
-            job["status"] = "downloading"
-            job["speed"] = d.get("speed")
-            job["eta"] = d.get("eta")
-        elif status == "finished":
-            job["percent"] = 100
-            job["status"] = "processing"
+def human_error(exc: Exception) -> str:
+    message = str(exc).strip().replace("\n", " ")
+    return message[-1000:] if message else "Unable to process this URL"
 
-    ydl_opts = {
-        "outtmpl": out_template,
-        "noplaylist": True,
+
+def extract_info(url: str, flat: bool = False) -> dict[str, Any]:
+    require_ytdlp()
+    options = {
         "quiet": True,
         "no_warnings": True,
-        "progress_hooks": [progress_hook],
+        "noplaylist": True,
+        "skip_download": True,
+        "socket_timeout": 20,
     }
-
-    if format_choice == "audio":
-        ydl_opts["format"] = "bestaudio/best"
-        ydl_opts["postprocessors"] = [{
-            "key": "FFmpegExtractAudio",
-            "preferredcodec": "mp3",
-            "preferredquality": "192",
-        }]
-    elif format_id:
-        ydl_opts["format"] = f"{format_id}+bestaudio/best"
-        ydl_opts["merge_output_format"] = "mp4"
-    else:
-        ydl_opts["format"] = "bestvideo+bestaudio/best"
-        ydl_opts["merge_output_format"] = "mp4"
-
-    try:
-        if yt_dlp is None:
-            raise RuntimeError("yt_dlp module could not be loaded")
-
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
-
-        files = glob.glob(os.path.join(DOWNLOAD_DIR, f"{job_id}.*"))
-        if not files:
-            job["status"] = "error"
-            job["error"] = "Download completed but no file was found"
-            return
-
-        if format_choice == "audio":
-            target = [f for f in files if f.endswith(".mp3")]
-            chosen = target[0] if target else files[0]
-        else:
-            target = [f for f in files if f.endswith(".mp4")]
-            chosen = target[0] if target else files[0]
-
-        for f in files:
-            if f != chosen:
-                try:
-                    os.remove(f)
-                except OSError:
-                    pass
-
-        job["status"] = "done"
-        job["percent"] = 100
-        job["file"] = chosen
-        ext = os.path.splitext(chosen)[1]
-        title = (job.get("title") or "").strip()
-        if title:
-            safe_title = "".join(c for c in title if c not in r'\/:*?"<>|').strip()[:100].strip()
-            job["filename"] = f"{safe_title}{ext}" if safe_title else os.path.basename(chosen)
-        else:
-            job["filename"] = os.path.basename(chosen)
-    except Exception as e:
-        job["status"] = "error"
-        job["error"] = str(e)
+    if flat:
+        options.update({"extract_flat": "in_playlist", "noplaylist": False})
+    with yt_dlp.YoutubeDL(options) as ydl:
+        return ydl.extract_info(url, download=False)
 
 
-class MeawHandler(BaseHTTPRequestHandler):
-    def send_cors_headers(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Range")
-        self.send_header("Access-Control-Expose-Headers", "Content-Length, Content-Range, Content-Disposition")
+def get_video_formats(info: dict[str, Any]) -> list[dict[str, Any]]:
+    """Return a small, useful quality list for the UI, highest quality first."""
+    candidates = []
+    seen_heights: set[int] = set()
+    for item in info.get("formats") or []:
+        height = item.get("height")
+        if not height or not item.get("vcodec") or item.get("vcodec") == "none":
+            continue
+        if height < 144 or height in seen_heights:
+            continue
+        seen_heights.add(height)
+        size = item.get("filesize") or item.get("filesize_approx")
+        candidates.append({
+            "id": str(item.get("format_id")),
+            "label": f"{height}p",
+            "height": height,
+            "ext": item.get("ext"),
+            "filesize": size,
+            "filesize_formatted": format_size(size),
+        })
+    candidates.sort(key=lambda x: x["height"], reverse=True)
+    return candidates[:12]
 
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_cors_headers()
-        self.end_headers()
 
-    def do_HEAD(self):
-        self.send_response(200)
-        self.send_cors_headers()
-        self.end_headers()
-
-    def send_json_response(self, data, status_code=200):
-        body = json.dumps(data).encode("utf-8")
-        self.send_response(status_code)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Content-Length", str(len(body)))
-        self.send_cors_headers()
-        self.end_headers()
-        self.wfile.write(body)
-
-    def do_GET(self):
-        parsed = urlparse(self.path)
-        path = parsed.path
-
-        if path == "/api/health" or path == "/health":
-            self.send_json_response({
-                "status": "ok",
-                "service": "Meaw Loader Backend",
-                "engine": "yt-dlp",
-                "version": "1.0.0"
-            })
-            return
-
-        if path == "/" or path == "/index.html":
-            file_path = os.path.join(BASE_DIR, "templates", "index.html")
-            if os.path.exists(file_path):
-                with open(file_path, "rb") as f:
-                    content = f.read()
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(content)))
-                self.send_header("X-Content-Type-Options", "nosniff")
-                self.send_cors_headers()
-                self.end_headers()
-                self.wfile.write(content)
-            else:
-                self.send_error(404, "index.html not found")
-            return
-
-        if path == "/robots.txt":
-            host = self.headers.get("Host", "localhost:3000")
-            proto = "https" if "https" in self.headers.get("X-Forwarded-Proto", "") else "http"
-            robots_txt = (
-                "User-agent: *\n"
-                "Allow: /\n"
-                "Disallow: /api/\n"
-                "Disallow: /downloads/\n\n"
-                f"Sitemap: {proto}://{host}/sitemap.xml\n"
-            ).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain; charset=utf-8")
-            self.send_header("Content-Length", str(len(robots_txt)))
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Cache-Control", "public, max-age=86400")
-            self.end_headers()
-            self.wfile.write(robots_txt)
-            return
-
-        if path == "/sitemap.xml":
-            host = self.headers.get("Host", "localhost:3000")
-            proto = "https" if "https" in self.headers.get("X-Forwarded-Proto", "") else "http"
-            sitemap_xml = (
-                '<?xml version="1.0" encoding="UTF-8"?>\n'
-                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-                '  <url>\n'
-                f'    <loc>{proto}://{host}/</loc>\n'
-                '    <lastmod>2026-10-09</lastmod>\n'
-                '    <changefreq>daily</changefreq>\n'
-                '    <priority>1.0</priority>\n'
-                '  </url>\n'
-                '</urlset>\n'
-            ).encode("utf-8")
-            self.send_response(200)
-            self.send_header("Content-Type", "application/xml; charset=utf-8")
-            self.send_header("Content-Length", str(len(sitemap_xml)))
-            self.send_header("X-Content-Type-Options", "nosniff")
-            self.send_header("Cache-Control", "public, max-age=86400")
-            self.end_headers()
-            self.wfile.write(sitemap_xml)
-            return
-
-        if path.startswith("/static/") or path.startswith("/assets/"):
-            rel_path = path.lstrip("/")
-            file_path = os.path.join(BASE_DIR, rel_path)
-            if os.path.exists(file_path) and os.path.isfile(file_path):
-                mime, _ = mimetypes.guess_type(file_path)
-                with open(file_path, "rb") as f:
-                    content = f.read()
-                self.send_response(200)
-                self.send_header("Content-Type", mime or "application/octet-stream")
-                self.send_header("Content-Length", str(len(content)))
-                self.end_headers()
-                self.wfile.write(content)
-            else:
-                self.send_error(404, "File not found")
-            return
-
-        if path.startswith("/api/status/"):
-            job_id = path.split("/api/status/")[1]
+def progress_hook(job_id: str):
+    def hook(data: dict[str, Any]):
+        status = data.get("status")
+        with jobs_lock:
             job = jobs.get(job_id)
             if not job:
-                self.send_json_response({"error": "Job not found"}, 404)
                 return
-            self.send_json_response({
-                "status": job["status"],
-                "percent": job.get("percent", 0),
-                "speed": job.get("speed"),
-                "eta": job.get("eta"),
-                "error": job.get("error"),
-                "filename": job.get("filename"),
-            })
-            return
-
-        if path.startswith("/api/file/"):
-            job_id = path.split("/api/file/")[1]
-            job = jobs.get(job_id)
-            if not job or job.get("status") != "done" or not job.get("file"):
-                self.send_json_response({"error": "File not ready"}, 404)
-                return
-
-            file_path = job["file"]
-            if not os.path.exists(file_path):
-                self.send_json_response({"error": "File not found on server"}, 404)
-                return
-
-            filename = job.get("filename") or os.path.basename(file_path)
-            file_size = os.path.getsize(file_path)
-            self.send_response(200)
-            self.send_header("Content-Type", "application/octet-stream")
-            self.send_header("Content-Length", str(file_size))
-            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
-            self.send_cors_headers()
-            self.end_headers()
-
-            with open(file_path, "rb") as f:
-                while chunk := f.read(65536):
-                    self.wfile.write(chunk)
-            return
-
-        self.send_error(404, "Endpoint not found")
-
-    def do_POST(self):
-        parsed = urlparse(self.path)
-        path = parsed.path
-
-        content_length = int(self.headers.get("Content-Length", 0))
-        post_data = self.rfile.read(content_length)
-        try:
-            body = json.loads(post_data.decode("utf-8")) if post_data else {}
-        except Exception:
-            body = {}
-
-        if path == "/api/info":
-            url = (body.get("url") or "").strip()
-            if not url:
-                self.send_json_response({"error": "No URL provided"}, 400)
-                return
-
-            try:
-                if yt_dlp is None:
-                    raise RuntimeError("yt_dlp is not available")
-
-                ydl_opts = {
-                    "skip_download": True,
-                    "noplaylist": True,
-                    "quiet": True,
-                    "no_warnings": True,
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=False)
-
-                duration = info.get("duration") or 0
-
-                # Determine best audio size
-                best_audio_size = 0
-                best_audio_bitrate = 0
-                for f in info.get("formats", []):
-                    if f.get("vcodec") == "none" and f.get("acodec") != "none":
-                        abr = f.get("abr") or f.get("tbr") or 0
-                        if abr > best_audio_bitrate:
-                            best_audio_bitrate = abr
-                            a_size = f.get("filesize") or f.get("filesize_approx")
-                            if a_size:
-                                best_audio_size = a_size
-                            elif duration and abr:
-                                best_audio_size = round((abr * 1000 / 8) * duration)
-
-                if not best_audio_size and duration:
-                    best_audio_size = round((128 * 1000 / 8) * duration)
-
-                audio_filesize = best_audio_size or (round((192 * 1000 / 8) * duration) if duration else None)
-
-                best_by_height = {}
-                for f in info.get("formats", []):
-                    height = f.get("height")
-                    if height and f.get("vcodec") != "none":
-                        tbr = f.get("tbr") or 0
-                        if height not in best_by_height or tbr > (best_by_height[height].get("tbr") or 0):
-                            best_by_height[height] = f
-
-                formats = []
-                for height, f in best_by_height.items():
-                    size = f.get("filesize") or f.get("filesize_approx")
-                    is_video_only = not f.get("acodec") or f.get("acodec") == "none"
-
-                    if not size and duration and (f.get("tbr") or f.get("vbr")):
-                        br = f.get("tbr") or f.get("vbr")
-                        size = round((br * 1000 / 8) * duration)
-
-                    if size and is_video_only and best_audio_size:
-                        size += best_audio_size
-
-                    formats.append({
-                        "id": f.get("format_id"),
-                        "label": f"{height}p",
-                        "height": height,
-                        "filesize": size,
-                        "filesize_formatted": format_bytes(size),
-                    })
-
-                formats.sort(key=lambda x: x["height"], reverse=True)
-
-                self.send_json_response({
-                    "title": info.get("title", ""),
-                    "thumbnail": info.get("thumbnail", ""),
-                    "duration": duration,
-                    "uploader": info.get("uploader", ""),
-                    "formats": formats,
-                    "audio_filesize": audio_filesize,
-                    "audio_filesize_formatted": format_bytes(audio_filesize),
-                })
-            except Exception as e:
-                self.send_json_response({"error": str(e)}, 400)
-            return
-
-        if path == "/api/playlist":
-            url = (body.get("url") or "").strip()
-            if not url:
-                self.send_json_response({"error": "No URL provided"}, 400)
-                return
-
-            try:
-                if yt_dlp is None:
-                    raise RuntimeError("yt_dlp is not available")
-
-                ydl_opts = {
-                    "extract_flat": True,
-                    "quiet": True,
-                    "no_warnings": True,
-                }
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=False)
-                entries = info.get("entries", [])
-                urls = [entry.get("url") for entry in entries if entry.get("url")]
-                self.send_json_response({"urls": urls})
-            except Exception as e:
-                self.send_json_response({"error": str(e)}, 400)
-            return
-
-        if path == "/api/download":
-            url = (body.get("url") or "").strip()
-            format_choice = body.get("format", "video")
-            format_id = body.get("format_id")
-            title = body.get("title", "")
-
-            if not url:
-                self.send_json_response({"error": "No URL provided"}, 400)
-                return
-
-            job_id = uuid.uuid4().hex[:10]
-            jobs[job_id] = {"status": "downloading", "percent": 0, "url": url, "title": title}
-
-            thread = threading.Thread(
-                target=run_download_thread,
-                args=(job_id, url, format_choice, format_id)
-            )
-            thread.daemon = True
-            thread.start()
-
-            self.send_json_response({"job_id": job_id})
-            return
-
-        self.send_error(404, "Endpoint not found")
-
-    def log_message(self, format, *args):
-        # Concise logging
-        sys.stderr.write(f"[{self.log_date_time_string()}] {format % args}\n")
+            if status == "downloading":
+                total = data.get("total_bytes") or data.get("total_bytes_estimate")
+                downloaded = data.get("downloaded_bytes", 0)
+                job["status"] = "downloading"
+                job["percent"] = round(downloaded * 100 / total, 1) if total else job.get("percent", 0)
+            elif status == "finished":
+                job["status"] = "processing"
+                job["percent"] = 99
+    return hook
 
 
-active_servers = []
-
-
-def run_port_listener(port_num, is_main=False):
+def run_download(job_id: str, url: str, media_format: str, format_id: str | None):
     try:
-        httpd = ThreadingHTTPServer(("0.0.0.0", port_num), MeawHandler)
-        active_servers.append(httpd)
-        print(f"Meaw Loader listening on http://0.0.0.0:{port_num} ({'PRIMARY' if is_main else 'AUXILIARY'})")
-        httpd.serve_forever()
-    except OSError as e:
-        if is_main:
-            print(f"Notice: Port {port_num} could not be bound directly ({e}). Trying backup ports...")
-    except Exception as e:
-        print(f"Notice: Port {port_num} listener closed: {e}")
+        require_ytdlp()
+        output_template = str(DOWNLOAD_DIR / f"{job_id}.%(ext)s")
+        options: dict[str, Any] = {
+            "quiet": True,
+            "no_warnings": True,
+            "noplaylist": True,
+            "outtmpl": output_template,
+            "progress_hooks": [progress_hook(job_id)],
+            "socket_timeout": 30,
+            "retries": 2,
+            "overwrites": True,
+        }
+        if media_format == "audio":
+            options.update({
+                "format": "bestaudio/best",
+                "postprocessors": [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }],
+            })
+        else:
+            # The selected format is a video stream; yt-dlp merges the best audio.
+            options.update({
+                "format": f"{format_id}+bestaudio/best" if format_id else "bestvideo*+bestaudio/best",
+                "merge_output_format": "mp4",
+            })
+
+        with yt_dlp.YoutubeDL(options) as ydl:
+            ydl.download([url])
+
+        files = [p for p in DOWNLOAD_DIR.glob(f"{job_id}.*") if p.is_file()]
+        if not files:
+            raise RuntimeError("Download completed but no output file was found")
+        output = max(files, key=lambda p: p.stat().st_mtime)
+        with jobs_lock:
+            jobs[job_id].update({
+                "status": "done",
+                "percent": 100,
+                "path": str(output),
+                "filename": output.name,
+            })
+    except Exception as exc:
+        with jobs_lock:
+            if job_id in jobs:
+                jobs[job_id].update({"status": "error", "error": human_error(exc)})
+
+
+def cleanup_old_jobs():
+    cutoff = time.time() - 6 * 3600
+    with jobs_lock:
+        old_ids = [job_id for job_id, job in jobs.items() if job.get("created", 0) < cutoff]
+        old_jobs = [jobs.pop(job_id) for job_id in old_ids]
+    for job in old_jobs:
+        path = job.get("path")
+        if path:
+            try:
+                Path(path).unlink(missing_ok=True)
+            except OSError:
+                pass
+
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
+    response.headers["Vary"] = "Origin"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    return response
+
+
+@app.route("/api/info", methods=["POST"])
+def api_info():
+    try:
+        url = validate_url((request.get_json(silent=True) or {}).get("url"))
+        info = extract_info(url)
+        formats = get_video_formats(info)
+        return jsonify({
+            "title": info.get("title") or "Untitled",
+            "thumbnail": info.get("thumbnail") or "",
+            "duration": format_duration(info.get("duration")),
+            "uploader": info.get("uploader") or info.get("channel") or "",
+            "formats": formats,
+            "audio_filesize": next((f.get("filesize") for f in info.get("formats", [])[::-1]
+                                    if f.get("acodec") not in (None, "none") and f.get("filesize")), None),
+            "audio_filesize_formatted": None,
+        })
+    except Exception as exc:
+        return error_response(human_error(exc), 422)
+
+
+@app.route("/api/playlist", methods=["POST"])
+def api_playlist():
+    try:
+        url = validate_url((request.get_json(silent=True) or {}).get("url"))
+        info = extract_info(url, flat=True)
+        urls = []
+        for entry in info.get("entries") or []:
+            if not entry:
+                continue
+            entry_url = entry.get("webpage_url") or entry.get("url")
+            if entry_url and entry_url.startswith("http"):
+                urls.append(entry_url)
+        return jsonify({"urls": urls[:200]})
+    except Exception as exc:
+        return error_response(human_error(exc), 422)
+
+
+@app.route("/api/download", methods=["POST"])
+def api_download():
+    try:
+        payload = request.get_json(silent=True) or {}
+        url = validate_url(payload.get("url"))
+        media_format = payload.get("format", "video")
+        if media_format not in {"video", "audio"}:
+            raise ValueError("format must be video or audio")
+        format_id = str(payload.get("format_id")) if payload.get("format_id") else None
+        job_id = uuid.uuid4().hex
+        with jobs_lock:
+            jobs[job_id] = {"status": "queued", "percent": 0, "created": time.time()}
+        threading.Thread(target=run_download, args=(job_id, url, media_format, format_id), daemon=True).start()
+        cleanup_old_jobs()
+        return jsonify({"job_id": job_id})
+    except Exception as exc:
+        return error_response(human_error(exc), 422)
+
+
+@app.route("/api/status/<job_id>", methods=["GET"])
+def api_status(job_id: str):
+    with jobs_lock:
+        job = jobs.get(job_id)
+        if not job:
+            return error_response("Job not found", 404)
+        return jsonify({k: v for k, v in job.items() if k not in {"path", "created"}})
+
+
+@app.route("/api/file/<job_id>", methods=["GET"])
+def api_file(job_id: str):
+    with jobs_lock:
+        job = jobs.get(job_id)
+        if not job or job.get("status") != "done":
+            return error_response("File is not ready", 404)
+        path = Path(job["path"])
+        filename = job.get("filename", path.name)
+    if not path.is_file() or path.parent != DOWNLOAD_DIR:
+        return error_response("File not found", 404)
+    return send_file(path, as_attachment=True, download_name=filename)
+
+
+@app.route("/", methods=["GET"])
+def index():
+    return send_file(INDEX_FILE)
+
+
+@app.route("/<path:filename>", methods=["GET"])
+def static_files(filename: str):
+    return send_from_directory(BASE_DIR, filename)
 
 
 if __name__ == "__main__":
-    env_port = os.environ.get("PORT") or os.environ.get("SERVER_PORT")
-    primary_port = int(env_port) if env_port else 33073
-
-    # Common reverse proxy ports used by Botkeep / Pterodactyl domain mappings
-    target_ports = [primary_port, 33073, 8080, 3000, 8000, 5000]
-    seen_ports = set()
-    unique_ports = []
-    for p in target_ports:
-        if p not in seen_ports:
-            seen_ports.add(p)
-            unique_ports.append(p)
-
-    # Spawn background threads for other potential proxy ports
-    for p in unique_ports[1:]:
-        t = threading.Thread(target=run_port_listener, args=(p, False), daemon=True)
-        t.start()
-
-    # Run primary port in main thread
-    try:
-        run_port_listener(unique_ports[0], True)
-    except KeyboardInterrupt:
-        print("\nMeaw Loader stopped by user.")
+    port = int(os.environ.get("PORT", "8080"))
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
