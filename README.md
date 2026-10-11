@@ -110,4 +110,4 @@ Use this project only for content you are allowed to download. Respect copyright
 
 ## License
 
-This project is distributed under the MIT License. See [LICENSE](LICENSE) for details.
+This project is distributed under the MIT License. See [LICENSE](LICENSE) for details..
