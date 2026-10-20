@@ -70,19 +70,6 @@
       position: relative;
     }
 
-    .local-mode-notice {
-      margin: 0 0 24px;
-      padding: 16px 18px;
-      border: 1.5px solid var(--accent);
-      border-radius: var(--radius);
-      background: var(--card);
-      font-size: 0.78rem;
-      line-height: 1.6;
-    }
-    .local-mode-notice strong { color: var(--accent); }
-    .local-mode-notice p { margin-top: 7px; }
-    .local-mode-notice a { color: var(--accent); }
-
     .brand { margin-bottom: 48px; }
     .brand-header {
       display: flex;
@@ -1395,12 +1382,6 @@
       <p>Free media downloader</p>
     </header>
 
-    <aside id="local-mode-notice" class="local-mode-notice" hidden>
-      <strong>Run Meaw Loader on your computer</strong>
-      <p>This hosted page no longer connects to a remote downloader. Download the project, start its local Python server, then open <code>http://127.0.0.1:8080</code> in your desktop browser.</p>
-      <p>Windows, macOS, or Linux desktop is required; Python downloads cannot run directly in an iPhone or Android browser. See the <a href="https://github.com/Quincunx33/Meaw-Loader/blob/main/LOCAL_SETUP.md">local setup guide</a>.</p>
-    </aside>
-
     <section class="downloader-controls" aria-label="Media URL Input and Format Selection">
       <div class="textarea-wrap" id="textarea-dropzone">
         <textarea id="urls" placeholder="Paste URLs, or drag &amp; drop a .txt file..." rows="2" aria-label="Paste one or more video or media URLs"></textarea>
@@ -1631,14 +1612,6 @@
 
     function apiUrl(endpoint) {
       return endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    }
-
-    const localHostnames = new Set(['localhost', '127.0.0.1', '::1']);
-    if (!localHostnames.has((window.location.hostname || '').toLowerCase())) {
-      const notice = document.getElementById('local-mode-notice');
-      if (notice) notice.hidden = false;
-      document.querySelectorAll('.downloader-controls textarea, .downloader-controls button')
-        .forEach((control) => { control.disabled = true; });
     }
 
     let currentFormat = 'video';
