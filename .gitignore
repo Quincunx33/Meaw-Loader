@@ -4,7 +4,12 @@ bin/yt-dlp
 assets/*.mov
 .DS_Store
 .env
-.env.local
-.env.production
-.env.development__pycache__/
+.env.*
+!.env.example
+__pycache__/
 *.py[cod]
+.venv/
+venv/
+secret_cookies.txt
+cookies.txt
+.secrets/

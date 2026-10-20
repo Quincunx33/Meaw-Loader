@@ -37,6 +37,19 @@ def require_ytdlp():
         raise RuntimeError("yt-dlp is not installed. Run: pip install -r requirements.txt")
 
 
+def get_yt_dlp_cookiefile() -> str | None:
+    """Use an optional private cookie file stored beside this local app."""
+    candidates = [
+        BASE_DIR / "secret_cookies.txt",
+        BASE_DIR / ".secrets" / "youtube_cookies.txt",
+        BASE_DIR / "cookies.txt",
+    ]
+    for path in candidates:
+        if path.is_file() and path.stat().st_size > 0:
+            return str(path)
+    return None
+
+
 def validate_url(value: Any) -> str:
     url = str(value or "").strip()
     if not re.match(r"^https?://", url, re.I) or len(url) > 4096:
@@ -64,6 +77,9 @@ def format_duration(seconds: Any) -> int | None:
 
 def human_error(exc: Exception) -> str:
     message = str(exc).strip().replace("\n", " ")
+    message = re.sub(r'cookies?[^\s"\']*', "[cookies]", message, flags=re.I)
+    for name in ("SID", "HSID", "SSID", "LOGIN_INFO", "SAPISID"):
+        message = re.sub(rf"{name}=[^\s;]+", f"{name}=[redacted]", message, flags=re.I)
     return message[-1000:] if message else "Unable to process this URL"
 
 
@@ -75,7 +91,13 @@ def extract_info(url: str, flat: bool = False) -> dict[str, Any]:
         "noplaylist": True,
         "skip_download": True,
         "socket_timeout": 20,
+        "extractor_args": {
+            "youtube": {"player_client": ["tv_samsung"]},
+        },
     }
+    cookie_file = get_yt_dlp_cookiefile()
+    if cookie_file:
+        options["cookiefile"] = cookie_file
     if flat:
         options.update({"extract_flat": "in_playlist", "noplaylist": False})
     with yt_dlp.YoutubeDL(options) as ydl:
@@ -137,7 +159,13 @@ def run_download(job_id: str, url: str, media_format: str, format_id: str | None
             "socket_timeout": 30,
             "retries": 2,
             "overwrites": True,
+            "extractor_args": {
+                "youtube": {"player_client": ["tv_samsung"]},
+            },
         }
+        cookie_file = get_yt_dlp_cookiefile()
+        if cookie_file:
+            options["cookiefile"] = cookie_file
         if media_format == "audio":
             options.update({
                 "format": "bestaudio/best",
@@ -186,15 +214,6 @@ def cleanup_old_jobs():
                 Path(path).unlink(missing_ok=True)
             except OSError:
                 pass
-
-
-@app.after_request
-def add_cors_headers(response):
-    response.headers["Access-Control-Allow-Origin"] = request.headers.get("Origin", "*")
-    response.headers["Vary"] = "Origin"
-    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    return response
 
 
 @app.route("/api/info", methods=["POST"])
@@ -280,11 +299,13 @@ def index():
     return send_file(INDEX_FILE)
 
 
-@app.route("/<path:filename>", methods=["GET"])
+@app.route("/static/<path:filename>", methods=["GET"])
 def static_files(filename: str):
-    return send_from_directory(BASE_DIR, filename)
+    return send_from_directory(BASE_DIR / "static", filename)
 
 
 if __name__ == "__main__":
+    host = os.environ.get("HOST", "127.0.0.1")
     port = int(os.environ.get("PORT", "8080"))
-    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
+    print(f"Meaw Loader running locally at http://127.0.0.1:{port}")
+    app.run(host=host, port=port, debug=False, threaded=True)
